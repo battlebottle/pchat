@@ -1,0 +1,7 @@
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\bin\Release\suave.xml
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\bin\Release\suave.dll
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\bin\Release\suave.pdb
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\bin\Release\ManagedOpenSsl.dll
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\bin\Release\ManagedOpenSsl.xml
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\obj\Release\suave.dll
+C:\Users\Brian\Downloads\SuaveIO-suave-v0.1.78-16-gf94b891\SuaveIO-suave-f94b891\Suave\obj\Release\suave.pdb

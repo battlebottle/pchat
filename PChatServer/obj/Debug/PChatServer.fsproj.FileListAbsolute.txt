@@ -1,0 +1,52 @@
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.fsprojResolveAssemblyReference.cache
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe.config
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.XML
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.pdb
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.xml
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.exe
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.pdb
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe.config
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.XML
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.pdb
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.dll
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.xml
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.fsprojResolveAssemblyReference.cache
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.exe
+C:\Users\Brian\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\libeay32.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\ssleay32.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe.config
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.XML
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.exe
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\PChatServer.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\Fleck.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\ManagedOpenSsl.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\suave.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\suave.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\suave.xml
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\ManagedOpenSsl.xml
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\bin\Debug\FSharp.Core.xml
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.fsprojResolveAssemblyReference.cache
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.exe
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\PChatServer\obj\Debug\PChatServer.pdb
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\libeay32.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\ssleay32.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\PChatServer.exe.config
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\PChatServer.XML
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\PChatServer.exe
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\PChatServer.pdb
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\Fleck.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\FSharp.Core.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\ManagedOpenSsl.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\suave.dll
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\suave.pdb
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\suave.xml
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\ManagedOpenSsl.xml
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\bin\Debug\FSharp.Core.xml
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\obj\Debug\PChatServer.fsprojResolveAssemblyReference.cache
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\obj\Debug\PChatServer.exe
+E:\Dropbox\Dropbox\Projects\pchat\PChatServer\obj\Debug\PChatServer.pdb

@@ -1,0 +1,9 @@
+c:\users\brian\documents\visual studio 2012\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.dll
+c:\users\brian\documents\visual studio 2012\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.pdb
+c:\users\brian\documents\visual studio 2012\Projects\pchatTypeScript\pchatTypeScript\obj\Debug\pchatTypeScript.csprojResolveAssemblyReference.cache
+c:\users\brian\documents\visual studio 2012\Projects\pchatTypeScript\pchatTypeScript\obj\Debug\pchatTypeScript.dll
+c:\users\brian\documents\visual studio 2012\Projects\pchatTypeScript\pchatTypeScript\obj\Debug\pchatTypeScript.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\obj\Debug\pchatTypeScript.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\obj\Debug\pchatTypeScript.pdb

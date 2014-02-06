@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pchatTypeScript", "pchatTypeScript\pchatTypeScript.csproj", "{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PChatServer", "PChatServer\PChatServer.fsproj", "{F3B04550-1CD7-4219-A6C5-7D921C0A7292}"
+	ProjectSection(ProjectDependencies) = postProject
+		{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2} = {724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{885E8CEA-D3DF-4DAA-9A2B-7B3B8B867799}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "suave", "Suave\suave.fsproj", "{3DC9193E-BD0C-4486-9C58-56B630C36623}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{724E2DC3-6490-4B77-9E0D-B2B97F36B0D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3B04550-1CD7-4219-A6C5-7D921C0A7292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3B04550-1CD7-4219-A6C5-7D921C0A7292}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3B04550-1CD7-4219-A6C5-7D921C0A7292}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3B04550-1CD7-4219-A6C5-7D921C0A7292}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DC9193E-BD0C-4486-9C58-56B630C36623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DC9193E-BD0C-4486-9C58-56B630C36623}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DC9193E-BD0C-4486-9C58-56B630C36623}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DC9193E-BD0C-4486-9C58-56B630C36623}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

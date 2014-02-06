@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="Content/bootstrap.min.css"/>
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="Content/bootstrap-theme.min.css"/>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="Scripts/jquery-2.1.0.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <style type="text/css">
+    div.roomListDiv{
+        vertical-align:  middle;
+        margin-left: 50px;
+        margin-right: 50px;
+        text-align:center;
+    }
+    div.roomDiv{
+        display:inline-block;
+        margin-left: 5px;
+        margin-right: 5px;
+        margin-bottom: 10px;
+    }
+    div.roomBullitDiv{
+        float:left;
+        border-radius: 50%;
+        border:0px solid orange;
+        background-color:orange;
+        width:50px;
+        height:50px;
+        text-align:center;
+        padding:-30px;
+        border-radius: 50%;
+        background-color: darkorange;
+        width:32px;
+        height:32px;
+        text-align:center;
+        padding:-30px;
+        vertical-align: middle;
+        line-height: 32px;
+        color: white;
+    }
+    span.roomTitle{
+        float:left;
+        line-height: 32px;
+        height:32px;
+        max-width:320px;
+        margin-left: 5px;
+        /*background: green;*/
+
+        }
+
+
+    </style>
+
+</head>
+<!--  onload="setTimeout(function(){location.reload()}, 500);" !-->
+<body >
+          <!-- Jumbotron -->
+      <div class="jumbotron" style="text-align: center;">
+        <h1>PChat</h1>
+        <p><a class="btn btn-lg btn-success" href="#" role="button" onclick="window.location.href = '/nextavailroom';">Create room</a></p>
+        <p class="lead">or join a room</p>
+      </div>
+    <div class="roomListDiv">
+        <##CHATROOMS_LIST##>
+        <div class="roomDiv">
+            <div class="roomBullitDiv">##ROOM_PEOPLE_COUNT##</div>
+            <span class="roomTitle">##ROOM_TITLE##</span>
+        </div>
+        </##CHATROOMS_LIST##>
+    </div>
+
+</body>
+</html>

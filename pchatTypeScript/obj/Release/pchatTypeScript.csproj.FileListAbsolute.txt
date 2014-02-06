@@ -1,0 +1,5 @@
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\bin\pchatTypeScript.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\obj\Release\pchatTypeScript.dll
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\obj\Release\pchatTypeScript.pdb
+E:\Dropbox\Dropbox\Projects\pchatTypeScript\pchatTypeScript\obj\Release\pchatTypeScript.csprojResolveAssemblyReference.cache
