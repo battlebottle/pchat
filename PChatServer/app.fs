@@ -10,6 +10,7 @@ open Suave.Http
 open Suave.Types
 open Suave.Session
 open ChatServer
+open System.Collections.Generic
 
 //open OpenSSL.X509
 //open OpenSSL.Core
@@ -51,7 +52,8 @@ let main argv =
                 createRoomsList t <| acu + (
                     roomTemplate
                     |> replaceFeild ("ROOM_TITLE", h.getTitle())
-                    |> replaceFeild ("ROOM_PEOPLE_COUNT", string (h.getPeopleNum())))
+                    |> replaceFeild ("ROOM_PEOPLE_COUNT", string (h.getPeopleNum()))
+                    |> replaceFeild ("ROOM_NUMBER", string (h.roomNumber)))
         createRoomsList rooms ""
 
     let makeIndexPage = getRoomListHTML >> insertHtmlListToTemplate indexPage "CHATROOMS_LIST"
@@ -70,21 +72,39 @@ let main argv =
           ]
           |> web_server
               { bindings =
-                [ HttpBinding.Create(HTTP, "0.0.0.0", 80) ]
+                [ HttpBinding.Create(HTTP, "0.0.0.0", 8080) ]
               ; error_handler    = default_error_handler
-              ; web_part_timeout = TimeSpan.FromMilliseconds 100.
-              ; listen_timeout   = TimeSpan.FromMilliseconds 200.
+              ; web_part_timeout = TimeSpan.FromMilliseconds 1000.
+              ; listen_timeout   = TimeSpan.FromMilliseconds 2000.
               ; ct               = Async.DefaultCancellationToken
               ; buffer_size = 2048
-              ; max_ops = 100000 }
+              ; max_ops = 10000 }
     } |> Async.Start
+
+
     //async {
+    //    let wcList = new List<WebClient>()
     //    while true do
+    //        wcList.Clear()
     //        for _ in [1.. 20] do
-    //            let wc = new WebClient()
-    //            wc.DownloadStringAsync(Uri("http://localhost:8082/chatpage.html"))
-    //        do! Async.Sleep 5000
-    //} |> Async.Start
+    //            let wc = new WebClient()                
+    //            wcList.Add(wc)
+    //            wc.DownloadStringCompleted.Add(
+    //                fun args -> 
+    //                    ()
+    //                    if args.Error = null then
+    //                        let str = args.Result                        
+    //                        if str.Contains("500 Internal Error") && not (str.StartsWith("HTTP"))  then
+    //                            raise (Exception("Uh oh"))
+    //            )
+    //            
+    //
+    //            wc.DownloadStringAsync(Uri("http://localhost:8080/chatpage.html"))
+    //        
+    //        do! Async.Sleep 10
+    //        wcList.ForEach(fun wc -> wc.Dispose())
+    //        do! Async.Sleep 500
+    //}|> Async.Start// |> ignore//
 
 
 

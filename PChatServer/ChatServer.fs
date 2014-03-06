@@ -27,7 +27,7 @@ let bytesToChatData (byteArray : byte array) =
     use ms = new MemoryStream(byteArray, 0, byteArray.Length, false, true)
     use r = new BinaryReader(ms)
     match r.ReadByte() with
-    | 0uy -> ChatMessage (readPerson r, readString r, readDateTime r, r.ReadBoolean(), r.ReadBoolean(), r.ReadUInt32())
+    | 0uy -> ChatMessage (readMessageType r, readMessageContent r, readDateTime r, r.ReadBoolean(), r.ReadBoolean(), r.ReadUInt32())
     | 1uy -> PersonStartedTyping (readPerson r)
     | 2uy -> PersonStoppedTyping (readPerson r)
     | 3uy -> RequestName (readString r)
@@ -39,9 +39,9 @@ let chatDataToBytes chatData =
     use ms = new MemoryStream()
     use w = new BinaryWriter(ms)
     match chatData with
-    | ChatMessage (person, message, time, thumbID, extraMediaID, id) -> 
+    | ChatMessage (messageType, messageContent, time, thumbID, extraMediaID, id) -> 
         w.Write(0uy)
-        writeMessage w (person, message, time, thumbID, extraMediaID, id)
+        writeMessage w (messageType, messageContent, time, thumbID, extraMediaID, id)
     | PersonStartedTyping person ->
         w.Write(1uy)
         writePerson w person        
@@ -80,6 +80,9 @@ let chatDataToBytes chatData =
     | RequestChatConnectionRejected reason ->
         w.Write(13uy)
         writeString w reason
+    | RequestNameRejected reason ->
+        w.Write(14uy)
+        writeString w reason
     | _ -> raise (Exception("match not found"))
     ms.ToArray()
 
@@ -93,107 +96,129 @@ let createThumbnail (pngData : byte array) =
         return msOut.ToArray()
     }
     
-let sanatise (str : string) = System.Web.HttpUtility.HtmlEncode(str)
+
+let sanatise (str : string) = System.Web.HttpUtility.HtmlEncode str
+
+let processMessage (messageContent : MessageContent) = 
+    messageContent
+    |> List.map (
+        fun mSpan -> 
+            match mSpan with
+            | Text text -> Text <| sanatise text
+            | Hightlight text -> Hightlight <| sanatise text
+            | Hyperlink (text,_) -> Hyperlink (sanatise text, sanatise text)
+    )
+
+let messageToString (message : MessageContent) =
+    let rec messageString acu messageContent =
+        match messageContent with
+        | h::t ->
+            match h with
+            | Text text -> messageString (acu + text) t
+            | Hightlight text -> messageString (acu + text) t
+            | Hyperlink (text, _) -> messageString (acu + text) t
+        | [] -> acu
+    messageString "" message
 
 //[<EntryPoint>]
-let createChatServer _ =     
-    let openSocketList = List<IWebSocketConnection>()
-    let peopleDictionary = Dictionary<Person, IWebSocketConnection>()
-    let messageHistory = List<Person * string * DateTime * HasThumbnail * HasExtraMedia * ID>()
-    let messageIDDict = Dictionary<IWebSocketConnection, Dictionary<ID,ID>>()
-    
-    let sendAll (bytes : byte array) =
-        openSocketList.ForEach(fun s -> s.Send(bytes))
-    
-    let sendAllPeople (bytes : byte array) =
-        peopleDictionary.Values.ToArray()
-        |> Array.iter (fun s -> s.Send(bytes))
-
-    let sendAllPeopleExcept socket (bytes : byte array) =
-        peopleDictionary.Values.ToArray()
-        |> Array.iter (fun s -> if not (s = socket) then s.Send(bytes))
-
-    //ws://localhost:1900/ws://pchatdev.cloudapp.net:1900/
-    let server = new WebSocketServer("ws://localhost:1900/")
-
-
-    server.Start(
-        fun socket -> 
-            socket.OnOpen <-(
-                fun _ ->
-                    Trace  "client connected!"
-                    openSocketList.Add(socket)
-            )
-            socket.OnClose <-(
-                fun _ ->
-                    Trace "client diconnected!"
-                    openSocketList.Remove(socket) |> ignore
-                    peopleDictionary.Remove(peopleDictionary.First(fun kv -> kv.Value = socket).Key) |> ignore
-                    sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
-            )
-
-            socket.OnBinary <-(
-                fun data ->
-                    match bytesToChatData data with
-                    | ChatMessage (person, message, time, hasThumbnail, hasExtraMedia, id) ->
-                        Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + message
-                        let messageHistoryID = messageHistory.Count |> uint32
-                        let sanatisedMessage = sanatise message
-                        messageHistory.Add(person, sanatisedMessage, time, hasThumbnail, hasExtraMedia, messageHistoryID)
-                        messageIDDict.[socket].Add(id, messageHistoryID)                        
-                        sendAllPeople <| chatDataToBytes (ChatMessage (person, sanatisedMessage, time, hasThumbnail, hasExtraMedia, messageHistoryID))
-                    | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
-                    | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
-                    | PersonAway _ -> ()
-                    | PersonNotAway _ -> ()
-                    | Theme _ -> ()
-                    | PeopleInRoom  _-> ()
-                    | MessageHistory _ -> ()
-                    | ServerTime _ -> ()
-                    | RequestName name ->
-                        if peopleDictionary.Any(fun a -> 
-                                                    let key, value = a.Key, a.Value
-                                                    key.name = sanatise name) then
-                            socket.Send(chatDataToBytes <| RequestNameRejected "Name already in use.")
-                        else
-                            let peopleIds = 
-                                peopleDictionary.Keys.ToArray()
-                                |> Array.map (fun p -> p.id)
-                                |> Array.toList
-
-                            let rec findNextID (idList : uint32 list) startInt =
-                                if List.exists (fun id -> id = startInt) idList then
-                                    findNextID idList (startInt + 1ul)
-                                else
-                                    startInt
-                            let newID = findNextID peopleIds 0ul
-
-                            Trace <| "san name: " + sanatise name
-
-                            let newPerson = {id = newID; name = sanatise name}
-                            peopleDictionary.Add(newPerson, socket)         
-                            messageIDDict.Add(socket, Dictionary<ID,ID>())                   
-                            socket.Send(chatDataToBytes <| RequestNameAccepted newPerson)
-                            socket.Send(chatDataToBytes <| MessageHistory (messageHistory.ToArray() |> Array.toList))
-                            sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
-                    | ExtraMedia eMedia ->
-                        let newMessageID = messageIDDict.[socket].[eMedia.messageID]
-                        let newExtraMedia = { eMedia with messageID = newMessageID }
-                        match newExtraMedia.media with
-                        | Drawing d -> 
-                            Trace <| "d length: " + string d.Length    
-                            async {
-                                let! thumbBytes = createThumbnail d
-                                let thumbnail = Thumbnail {messageID = newMessageID; thumbnail = thumbBytes}
-                                sendAllPeople (chatDataToBytes thumbnail) 
-                            } |> Async.Start   
-                        | _ -> raise (Exception("match not found"))
-                        sendAllPeople (chatDataToBytes <| ExtraMedia newExtraMedia)                    
-                    | _ -> raise (Exception("match not found"))
-            )
-    )
-                        
-    server
+//let createChatServer _ =     
+//    let openSocketList = List<IWebSocketConnection>()
+//    let peopleDictionary = Dictionary<Person, IWebSocketConnection>()
+//    let messageHistory = List<ChatMessage>()
+//    let messageIDDict = Dictionary<IWebSocketConnection, Dictionary<ID,ID>>()
+//    
+//    let sendAll (bytes : byte array) =
+//        openSocketList.ForEach(fun s -> s.Send(bytes))
+//    
+//    let sendAllPeople (bytes : byte array) =
+//        peopleDictionary.Values.ToArray()
+//        |> Array.iter (fun s -> s.Send(bytes))
+//
+//    let sendAllPeopleExcept socket (bytes : byte array) =
+//        peopleDictionary.Values.ToArray()
+//        |> Array.iter (fun s -> if not (s = socket) then s.Send(bytes))
+//
+//    //ws://localhost:1900/ws://pchatdev.cloudapp.net:1900/
+//    let server = new WebSocketServer("ws://localhost:1900/")
+//
+//
+//    server.Start(
+//        fun socket -> 
+//            socket.OnOpen <-(
+//                fun _ ->
+//                    Trace  "client connected!"
+//                    openSocketList.Add(socket)
+//            )
+//            socket.OnClose <-(
+//                fun _ ->
+//                    Trace "client diconnected!"
+//                    openSocketList.Remove(socket) |> ignore
+//                    peopleDictionary.Remove(peopleDictionary.First(fun kv -> kv.Value = socket).Key) |> ignore
+//                    sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
+//            )
+//
+//            socket.OnBinary <-(
+//                fun data ->
+//                    match bytesToChatData data with
+//                    | ChatMessage (person, message, time, hasThumbnail, hasExtraMedia, id) ->
+//                        Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + messageToString message
+//                        let messageHistoryID = messageHistory.Count |> uint32
+//                        let sanatisedMessage = (person, processMessage message, time, hasThumbnail, hasExtraMedia, messageHistoryID)
+//                        messageHistory.Add(sanatisedMessage)
+//                        messageIDDict.[socket].Add(id, messageHistoryID)                        
+//                        sendAllPeople <| chatDataToBytes (ChatMessage sanatisedMessage)
+//                    | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
+//                    | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
+//                    | PersonAway _ -> ()
+//                    | PersonNotAway _ -> ()
+//                    | Theme _ -> ()
+//                    | PeopleInRoom  _-> ()
+//                    | MessageHistory _ -> ()
+//                    | ServerTime _ -> ()
+//                    | RequestName name ->
+//                        if peopleDictionary.Any(fun a -> 
+//                                                    let key, value = a.Key, a.Value
+//                                                    key.name = sanatise name) then
+//                            socket.Send(chatDataToBytes <| RequestNameRejected "Name already in use.")
+//                        else
+//                            let peopleIds = 
+//                                peopleDictionary.Keys.ToArray()
+//                                |> Array.map (fun p -> p.id)
+//                                |> Array.toList
+//
+//                            let rec findNextID (idList : uint32 list) startInt =
+//                                if List.exists (fun id -> id = startInt) idList then
+//                                    findNextID idList (startInt + 1ul)
+//                                else
+//                                    startInt
+//                            let newID = findNextID peopleIds 0ul
+//
+//                            Trace <| "san name: " + sanatise name
+//
+//                            let newPerson = {id = newID; name = sanatise name}
+//                            peopleDictionary.Add(newPerson, socket)         
+//                            messageIDDict.Add(socket, Dictionary<ID,ID>())                   
+//                            socket.Send(chatDataToBytes <| RequestNameAccepted newPerson)
+//                            socket.Send(chatDataToBytes <| MessageHistory (messageHistory.ToArray() |> Array.toList))
+//                            sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
+//                    | ExtraMedia eMedia ->
+//                        let newMessageID = messageIDDict.[socket].[eMedia.messageID]
+//                        let newExtraMedia = { eMedia with messageID = newMessageID }
+//                        match newExtraMedia.media with
+//                        | Drawing d -> 
+//                            Trace <| "d length: " + string d.Length    
+//                            async {
+//                                let! thumbBytes = createThumbnail d
+//                                let thumbnail = Thumbnail {messageID = newMessageID; thumbnail = thumbBytes}
+//                                sendAllPeople (chatDataToBytes thumbnail) 
+//                            } |> Async.Start   
+//                        | _ -> raise (Exception("match not found"))
+//                        sendAllPeople (chatDataToBytes <| ExtraMedia newExtraMedia)                    
+//                    | _ -> raise (Exception("match not found"))
+//            )
+//    )
+//                        
+//    server
 
 type RoomManager = {
     roomNumber : int;
@@ -206,7 +231,7 @@ type RoomManager = {
 let createRoomManager roomNum =
     let openSocketList = List<IWebSocketConnection>()
     let peopleDictionary = Dictionary<Person, IWebSocketConnection>()
-    let messageHistory = List<Person * string * DateTime * HasThumbnail * HasExtraMedia * ID>()
+    let messageHistory = List<ChatMessage>()
     let messageIDDict = Dictionary<IWebSocketConnection, Dictionary<ID,ID>>()
     
     let sendAll (bytes : byte array) =
@@ -246,12 +271,12 @@ let createRoomManager roomNum =
                     fun data ->
                         match bytesToChatData data with
                         | ChatMessage (person, message, time, hasThumbnail, hasExtraMedia, id) ->
-                            Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + message
+                            Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + messageToString message
                             let messageHistoryID = messageHistory.Count |> uint32
-                            let sanatisedMessage = sanatise message
-                            messageHistory.Add(person, sanatisedMessage, time, hasThumbnail, hasExtraMedia, messageHistoryID)
+                            let sanatisedMessage = (person, processMessage message, time, hasThumbnail, hasExtraMedia, messageHistoryID)
+                            messageHistory.Add(sanatisedMessage)
                             messageIDDict.[socket].Add(id, messageHistoryID)                        
-                            sendAllPeople <| chatDataToBytes (ChatMessage (person, sanatisedMessage, time, hasThumbnail, hasExtraMedia, messageHistoryID))
+                            sendAllPeople <| chatDataToBytes (ChatMessage (sanatisedMessage))
                         | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
                         | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
                         | PersonAway _ -> ()

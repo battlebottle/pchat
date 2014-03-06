@@ -104,14 +104,19 @@ let read_till_EOL (connection : Connection) (select) (preread : BufferSegment op
     }
   and read_data count (ahead :BufferSegment option)  = async {
     let buff = connection.get_buffer ()
-    let! b = connection.read buff 
-    if b > 0 then 
-      match ahead with 
-      | Some data ->
-        return! scan_data_x count data {buffer = buff; offset = buff.Offset ; lenght = b}
-      | None ->
-        return! scan_data count {buffer = buff; offset = buff.Offset ; lenght = b}
-    else return failwith "client closed"
+    try
+      let! b = connection.read buff 
+      if b > 0 then 
+        match ahead with 
+        | Some data ->
+          return! scan_data_x count data {buffer = buff; offset = buff.Offset ; lenght = b}
+        | None ->
+          return! scan_data count {buffer = buff; offset = buff.Offset ; lenght = b}
+      else 
+        return failwith "client closed"
+    with ex ->
+      connection.free_buffer buff
+      return raise ex
     }
   match preread with 
   | Some data ->
@@ -369,69 +374,71 @@ let parse_multipart (connection : Connection) boundary (request : HttpRequest) (
 
 /// Process the request, reading as it goes from the incoming 'stream', yielding a HttpRequest
 /// when done
-let process_request proxy_mode (request : HttpRequest) (bytes : BufferSegment option) line_buffer = async {
+let process_request proxy_mode (request : HttpRequest) (bytes : BufferSegment option) line_buffer : Async<(HttpRequest * BufferSegment option) option> = async {
 
   let connection = request.connection
-
-  Log.tracef(fun fmt -> fmt "web:process_request proxy:%b bytes:%A -> read_line" proxy_mode bytes)
-  let! (first_line : string), rem = read_line connection bytes line_buffer
-  Log.tracef(fun fmt -> fmt "web:process_request proxy:%b <- read_line" proxy_mode)
-
-  if first_line.Length = 0 then
-    return None, rem
-  else
-    let meth, url, _, raw_query, http_version = parse_url first_line request.query
-
-    request.url      <- url
-    request.``method``   <- meth
-    request.raw_query <- raw_query
-    request.http_version <- http_version
-
-    let headers = request.headers
-    let! rem = read_headers connection rem headers line_buffer
-
-    // won't continue parsing if on proxyMode with the intention of forwarding the stream as it is
-    if proxy_mode then return Some request, rem
+  try
+    Log.tracef(fun fmt -> fmt "web:process_request proxy:%b bytes:%A -> read_line" proxy_mode bytes)
+    let! (first_line : string), rem = read_line connection bytes line_buffer
+    Log.tracef(fun fmt -> fmt "web:process_request proxy:%b <- read_line" proxy_mode)
+    
+    if first_line.Length = 0 then
+      return None
     else
-      request.headers
-      |> Seq.filter (fun x -> x.Key.Equals("cookie"))
-      |> Seq.iter (fun x ->
-                    let cookie = parse_cookie x.Value
-                    request.cookies.Add (fst(cookie.[0]),cookie))
+      let meth, url, _, raw_query, http_version = parse_url first_line request.query
 
-      // TODO: can't assume only POST can have form data, PUT can also be done
-      // from forms
-      if meth.Equals("POST") then
+      request.url      <- url
+      request.``method``   <- meth
+      request.raw_query <- raw_query
+      request.http_version <- http_version
 
-        let content_encoding =
-          match headers.TryGetValue("content-type") with
-          | true, encoding -> Some encoding
-          | false, _ -> None
+      let headers = request.headers
+      let! rem = read_headers connection rem headers line_buffer
 
-        let content_length = Convert.ToInt32(headers.["content-length"])
+      // won't continue parsing if on proxyMode with the intention of forwarding the stream as it is
+      if proxy_mode then return Some (request, rem)
+      else
+        request.headers
+        |> Seq.filter (fun x -> x.Key.Equals("cookie"))
+        |> Seq.iter (fun x ->
+                      let cookie = parse_cookie x.Value
+                      request.cookies.Add (fst(cookie.[0]),cookie))
 
-        match content_encoding with
-        | Some ce when ce.StartsWith("application/x-www-form-urlencoded") ->
-          let! (rawdata : ArraySegment<_>), rem = read_post_data connection content_length rem
-          let str = to_string rawdata.Array rawdata.Offset rawdata.Count
-          let _  = parse_data str request.form
-          // TODO: can't we instead of copying, do an LMAX and use the buffer as a circular
-          // queue?
-          let raw_form = Array.zeroCreate rawdata.Count
-          Array.blit rawdata.Array rawdata.Offset raw_form 0 rawdata.Count
-          request.raw_form <- raw_form
-          return Some request, rem
-        | Some ce when ce.StartsWith("multipart/form-data") ->
-          let boundary = "--" + ce.Substring(ce.IndexOf('=')+1).TrimStart()
-          let! rem = parse_multipart connection boundary request rem line_buffer
-          return Some request, rem
-        | Some _ | None -> 
-          let! (rawdata : ArraySegment<_>),_ = read_post_data connection content_length rem
-          let raw_form = Array.zeroCreate rawdata.Count
-          Array.blit rawdata.Array rawdata.Offset raw_form 0 rawdata.Count
-          request.raw_form <- raw_form
-          return Some request, rem
-      else return Some request, rem
+        // TODO: can't assume only POST can have form data, PUT can also be done
+        // from forms
+        if meth.Equals("POST") then
+
+          let content_encoding =
+            match headers.TryGetValue("content-type") with
+            | true, encoding -> Some encoding
+            | false, _ -> None
+
+          let content_length = Convert.ToInt32(headers.["content-length"])
+
+          match content_encoding with
+          | Some ce when ce.StartsWith("application/x-www-form-urlencoded") ->
+            let! (rawdata : ArraySegment<_>), rem = read_post_data connection content_length rem
+            let str = to_string rawdata.Array rawdata.Offset rawdata.Count
+            let _  = parse_data str request.form
+            // TODO: can't we instead of copying, do an LMAX and use the buffer as a circular
+            // queue?
+            let raw_form = Array.zeroCreate rawdata.Count
+            Array.blit rawdata.Array rawdata.Offset raw_form 0 rawdata.Count
+            request.raw_form <- raw_form
+            return Some (request, rem)
+          | Some ce when ce.StartsWith("multipart/form-data") ->
+            let boundary = "--" + ce.Substring(ce.IndexOf('=')+1).TrimStart()
+            let! rem = parse_multipart connection boundary request rem line_buffer
+            return Some (request, rem)
+          | Some _ | None -> 
+            let! (rawdata : ArraySegment<_>),_ = read_post_data connection content_length rem
+            let raw_form = Array.zeroCreate rawdata.Count
+            Array.blit rawdata.Array rawdata.Offset raw_form 0 rawdata.Count
+            request.raw_form <- raw_form
+            return Some (request, rem)
+        else return Some (request, rem)
+  with ex -> 
+    return None
 }
 
 open System.Net
@@ -455,7 +462,7 @@ let inline load_connection proto (connection : Connection) = async{
 open System.Net.Sockets
 
 /// A HttpProcessor takes a HttpRequest instance, returning asynchronously a HttpRequest that has been parsed
-type HttpProcessor = HttpRequest -> BufferSegment option -> ArraySegment<byte>-> Async<HttpRequest option * (BufferSegment option)>
+type HttpProcessor = HttpRequest -> BufferSegment option -> ArraySegment<byte>-> Async<(HttpRequest * (BufferSegment option)) option>
 type RequestResult = Done
 
 /// The request loop initialises a request with a processor to handle the
@@ -470,56 +477,66 @@ let request_loop
   (web_part_timeout : TimeSpan)
   (error_handler    : ErrorHandler)
   (connection       : Connection) =
-  /// Evaluate the (web part) action as an async value, handling errors with error_handler should one
-  /// occur.
-  let eval_action x r = async {
-    try
-      do! x
-    with
-    | InternalFailure(_) as ex -> raise ex
-    | ex -> do! error_handler ex "web:request_loop - action failed" r
-  }
+
   /// Check if the web part can perform its work on the current request. If it can't
   /// it will return None and the run method will return.
   let run request = async {
     match web_part request with // run the web part
-    | Some x -> do! eval_action x request
+    | Some x -> do! x
     | None -> return ()
   }
 
-  let line_buffer = connection.get_buffer()
+  let free (s : BufferSegment option) = 
+    match s with 
+    | None -> ()
+    | Some x -> connection.free_buffer x.buffer
+
+  let exit rem msg = async {
+    free rem
+    Log.trace(fun () -> msg)
+    return ()
+    }
+   
 
   let rec loop (bytes : BufferSegment option) request = async {
     Log.trace(fun () -> "web:request_loop:loop -> processor")
-    let! result, rem = processor request bytes line_buffer
+    let! result = processor request bytes request.line_buffer
     Log.trace(fun () -> "web:request_loop:loop <- processor")
 
     match result with
-    | Some (request : HttpRequest) ->
+    | Some (request : HttpRequest, rem) ->
       try
         Log.trace(fun () -> "web:request_loop:loop -> unblock")
         do! Async.WithTimeout (web_part_timeout, run request)
         Log.trace(fun () -> "web:request_loop:loop <- unblock")
       with
-        | InternalFailure(_) as ex  -> raise ex
-        | :? TimeoutException as ex -> do! error_handler ex "script timeout" request
+        | InternalFailure(_) as ex  -> free rem; raise ex
+        | :? TimeoutException as ex -> free rem; raise ex
+        | :? SocketIssue as ex      -> free rem; raise ex
         | ex -> do! error_handler ex "Routing request failed" request
-      match request.headers?connection with
-      | Some (x : string) when x.ToLower().Equals("keep-alive") ->
-        clear request
-        Log.tracef(fun fmt -> fmt "web:request_loop:loop 'Connection: keep-alive' recurse (!), rem: %A" rem)
-        return! loop rem request
-      | Some _ ->
-        Log.trace(fun () -> "web:request_loop:loop  'Connection: close', exiting")
-        return ()
-      | None ->
-        if request.http_version.Equals("HTTP/1.1") then
+      if connection.is_connected () then
+        match request.headers?connection with
+        | Some (x : string) when x.ToLower().Equals("keep-alive") ->
           clear request
-          Log.trace(fun () -> "web:request_loop:loop  'Connection: keep-alive' recurse (!)")
+          Log.tracef(fun fmt -> fmt "web:request_loop:loop 'Connection: keep-alive' recurse (!), rem: %A" rem)
           return! loop rem request
-        else
+        | Some _ ->
+          free rem;
           Log.trace(fun () -> "web:request_loop:loop  'Connection: close', exiting")
           return ()
+        | None ->
+          if request.http_version.Equals("HTTP/1.1") then
+            clear request
+            Log.trace(fun () -> "web:request_loop:loop  'Connection: keep-alive' recurse (!)")
+            return! loop rem request
+          else
+            free rem;
+            Log.trace(fun () -> "web:request_loop:loop  'Connection: close', exiting")
+            return ()
+      else
+        free rem;
+        Log.trace(fun () -> "web:request_loop:loop 'is_connected = false', exiting")
+        return ()
     | None ->
       Log.trace(fun () -> "web:request_loop:loop 'result = None', exiting")
       return ()
@@ -543,7 +560,8 @@ let request_loop
       ; response       = new HttpResponse()
       ; files          = new List<HttpUpload>()
       ; remote_address = connection.ipaddr
-      ; is_secure      = match proto with HTTP -> false | HTTPS _ -> true }
+      ; is_secure      = match proto with HTTP -> false | HTTPS _ -> true
+      ; line_buffer = connection.get_buffer() }
     try
       try
         do! loop None request
@@ -557,7 +575,7 @@ let request_loop
       | ex ->
         Log.tracef(fun fmt -> fmt "web:request_loop - Request failed.\n%A" ex)
     finally
-      connection.free_buffer line_buffer
+      connection.free_buffer request.line_buffer
   }
 
 /// Parallelise the map of 'f' onto all items in the 'input' seq.
@@ -576,12 +594,10 @@ let is_local_address (ip : string) =
 /// The default error handler returns a 500 Internal Error in response to
 /// thrown exceptions.
 let default_error_handler (ex : Exception) msg (request : HttpRequest) = async {
-  try
-    Log.logf "web:default_error_handler - %s.\n%A" msg ex
-    if IPAddress.IsLoopback request.remote_address then
-      do! (response 500 "Internal Error" (bytes_utf8 (sprintf "<h1>%s</h1><br/>%A" ex.Message ex)) request)
-    else do! (response 500 "Internal Error" (bytes_utf8 ("Internal Error")) request)
-  with _ -> return ()
+  Log.logf "web:default_error_handler - %s.\n%A" msg ex
+  if IPAddress.IsLoopback request.remote_address then
+    do! (response 500 "Internal Error" (bytes_utf8 (sprintf "<h1>%s</h1><br/>%A" ex.Message ex)) request)
+  else do! (response 500 "Internal Error" (bytes_utf8 ("Internal Error")) request)
 }
 
 /// Starts a new web worker, given the configuration and a web part to serve.

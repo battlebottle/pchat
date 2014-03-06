@@ -73,11 +73,13 @@ let inline async_do (op : A -> bool) (prepare : A -> unit) (select: A -> 'T) (ar
   Async.FromContinuations <| fun (ok, error, _) ->
     prepare args
     let k (args : A) =
-      match args.SocketError with
-      | System.Net.Sockets.SocketError.Success ->
-        let result = select args
-        ok result
-      | e -> error (SocketIssue e)
+      try
+        match args.SocketError with
+        | System.Net.Sockets.SocketError.Success ->
+          let result = select args
+          ok result
+        | e -> error (SocketIssue e)
+      with ex -> error ex
     (args.UserToken :?> AsyncUserToken).Continuation <- k
     if not (op args) then
       k args
@@ -102,19 +104,18 @@ type Connection = {
   write  : ArraySegment<byte> -> Async<unit>;
   get_buffer  : unit -> ArraySegment<byte>;
   free_buffer : ArraySegment<byte> -> unit;
-  shutdown : unit -> unit 
+  shutdown : unit -> unit;
+  is_connected: unit -> bool 
   }
 
 let eol_array_segment = new ArraySegment<_>(EOL, 0, 2)
 
 /// Write the string s to the stream asynchronously
 /// as ASCII encoded text
-let inline async_writeln (connection : Connection) (s : string) = async {
+let inline async_writeln (connection : Connection) (s : string) (buff : ArraySegment<byte>) = async {
   if s.Length > 0 then 
-    let buff = connection.get_buffer()
     let c = bytes_to_buffer s buff.Array buff.Offset
     do! connection.write (new ArraySegment<_>(buff.Array, buff.Offset, c))
-    connection.free_buffer buff
   do! connection.write eol_array_segment
 }
 

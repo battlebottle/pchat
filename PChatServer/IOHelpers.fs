@@ -38,6 +38,28 @@ let readPerson (reader : BinaryReader) =
         name =  readString reader
     }
 
+let readMessageType (reader : BinaryReader) =
+    let header = reader.ReadByte()
+    match header with
+    | 0uy -> Normal <| readPerson reader
+    | _ -> raise (Exception("match not found"))
+
+let readMessageSpan (reader : BinaryReader) =
+    let header = reader.ReadByte()
+    match header with
+    | 0uy -> Text <| readString reader
+    | _ -> raise (Exception("match not found"))
+
+let readMessageContent (reader : BinaryReader) =
+    let length = reader.ReadUInt32()
+    let rec readContentRec acu length =
+        if length = 0ul then
+            acu
+        else
+            readContentRec (readMessageSpan reader :: acu) (length - 1ul)
+    readContentRec [] length |> List.rev
+
+
 let writePerson (writer : BinaryWriter) (person: Person) =
     writer.Write(person.id)
     writeString writer person.name
@@ -52,12 +74,39 @@ let writeOption<'T> (writer : BinaryWriter) (valueWriter : 'T -> unit) (option: 
     writer.Write(option.IsSome)
     if(option.IsSome) then
         valueWriter option.Value
-        
 
-let writeMessage (writer : BinaryWriter) (person: Person, message : string, time : DateTime, hasThumbnail : HasThumbnail, hasExtraMedia : HasExtraMedia, id : ID) =
+let writeMessageType (writer : BinaryWriter) (messageType : MessageType) =
+    match messageType with
+    | Normal person ->
+        writer.Write(0uy)
+        writePerson writer person
+    | Server -> writer.Write(1uy)
+    | Clear -> writer.Write(2uy)
+    
+let writeMessageSpan (writer : BinaryWriter) (messageSpan : MessageSpan) =
+    match messageSpan with
+    | Text text ->
+        writer.Write(0uy)
+        writeString writer text
+    | Hightlight text ->
+        writer.Write(1uy)
+        writeString writer text
+    | Hyperlink (text, url)->
+        writer.Write(2uy)
+        writeString writer text
+        writeString writer url
+
+
+let writeContent (writer : BinaryWriter) (messageContent : MessageContent) =
+    writer.Write(messageContent.Length |> uint32)
+    for messageSpan in messageContent do
+        writeMessageSpan writer messageSpan
+
+
+let writeMessage (writer : BinaryWriter) (messageType: MessageType, messageContent : MessageContent, time : DateTime, hasThumbnail : HasThumbnail, hasExtraMedia : HasExtraMedia, id : ID) =
     let uintWriter = fun (value : uint32) -> writer.Write(value)
-    writePerson writer person
-    writeString writer message
+    writeMessageType writer messageType
+    writeContent writer messageContent
     writeDateTime writer time    
     writer.Write(hasThumbnail)
     writer.Write(hasExtraMedia)  
@@ -68,7 +117,7 @@ let writeStringList (writer : BinaryWriter) (stringList: string list) =
     for s in stringList do
         writeString writer s
 
-let writeMessageList (writer : BinaryWriter) (messageList : (Person * string * DateTime * HasThumbnail * HasExtraMedia * ID) list) =
+let writeMessageList (writer : BinaryWriter) (messageList : ChatMessage list) =
     writer.Write(messageList.Length |> uint32)
     for m in messageList do
         writeMessage writer m
