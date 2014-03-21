@@ -63,12 +63,41 @@ let readMessageContent (reader : BinaryReader) =
 let writePerson (writer : BinaryWriter) (person: Person) =
     writer.Write(person.id)
     writeString writer person.name
+    
+let unixEpoch = DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
 
-let readDateTime (reader : BinaryReader) =
-    DateTime(reader.ReadUInt32() |> int64)
+let readDateTime (reader : BinaryReader) =    
+    DateTime(reader.ReadUInt32() + reader.ReadUInt32() |> int64 |> (*) 10000L|> (+) (unixEpoch.Ticks))  
+
+let readByteArray (reader : BinaryReader) =
+    let length = reader.ReadUInt32()
+    let remaining = reader.BaseStream.Length - reader.BaseStream.Position
+    let bytes = reader.ReadBytes(length |> int32)
+    bytes
+
+let readImageRef (reader : BinaryReader) =
+    let header = reader.ReadByte()
+    match header with
+    | 0uy -> ImageRef.Embedded <| readByteArray reader
+
+let readMediaType (reader : BinaryReader) =
+    let header = reader.ReadByte()
+    match header with
+    | 0uy -> MediaType.Drawing <| readImageRef reader
+
+
+
+//write helpers
 
 let writeDateTime (writer : BinaryWriter) (dateTime: DateTime) =
-    writer.Write(dateTime.Ticks |> uint32)
+    let time = (dateTime.Ticks - unixEpoch.Ticks) / 10000L
+    let time1 = time |> uint32
+    let time2 = time >>> 32 |> uint32
+
+    //let time3 = (uint64 time1) + ((uint64 time2) <<< 32)
+    
+    writer.Write(time1)
+    writer.Write(time2)
 
 let writeOption<'T> (writer : BinaryWriter) (valueWriter : 'T -> unit) (option: Option<'T>) =
     writer.Write(option.IsSome)
@@ -117,10 +146,37 @@ let writeStringList (writer : BinaryWriter) (stringList: string list) =
     for s in stringList do
         writeString writer s
 
-let writeMessageList (writer : BinaryWriter) (messageList : ChatMessage list) =
-    writer.Write(messageList.Length |> uint32)
-    for m in messageList do
+let writeImageRef (writer : BinaryWriter) (imageRef : ImageRef) =
+    match imageRef with
+    | ImageRef.Reference num ->
+        writer.Write(1uy)
+        writer.Write(num)
+
+let writeMediaType (writer : BinaryWriter) (mediaType : MediaType) =
+    match mediaType with
+    | Drawing data -> 
+        writer.Write(0uy)
+        writeImageRef writer data
+
+let writeExtraMedia (writer : BinaryWriter) (extraMedia : ExtraMedia) =
+    writer.Write(extraMedia.messageID)
+    writeMediaType writer extraMedia.media
+    
+let writeThumbnail (writer : BinaryWriter) (thumbnail : Thumbnail) =
+    writer.Write thumbnail.messageID
+    writer.Write thumbnail.thumbnail
+
+let writeMessageList (writer : BinaryWriter) (messageList : MessageHistory) =
+    let ch, th, emh = messageList
+    writer.Write(ch.Length |> uint32)
+    for m in ch do
         writeMessage writer m
+    writer.Write(th.Length |> uint32)
+    for t in th do
+        writeThumbnail writer t
+    writer.Write(emh.Length |> uint32)
+    for em in emh do
+        writeExtraMedia writer em
 
 let writePeopleList (writer : BinaryWriter) (peopleList : Person list) =
     writer.Write(peopleList.Length |> uint32)
@@ -128,31 +184,8 @@ let writePeopleList (writer : BinaryWriter) (peopleList : Person list) =
         writePerson writer p
 
 
-let readByteArray (reader : BinaryReader) =
-    let length = reader.ReadUInt32()
-    let remaining = reader.BaseStream.Length - reader.BaseStream.Position
-    let bytes = reader.ReadBytes(length |> int32)
-    bytes
-
-let readMediaType (reader : BinaryReader) =
-    let header = reader.ReadByte()
-    match header with
-    | 0uy -> MediaType.Drawing <| readByteArray reader
-
 let writeBytes (writer : BinaryWriter) (bytes:byte[]) =
     writer.Write(bytes.Length |> uint32)
     writer.Write(bytes)
 
-let writeMediaType (writer : BinaryWriter) (mediaType : MediaType) =
-    match mediaType with
-    | Drawing data -> 
-        writer.Write(0uy)
-        writeBytes writer data
 
-let writeExtraMedia (writer : BinaryWriter) (extraMedia : ExtraMedia) =
-    writer.Write(extraMedia.messageID)
-    writeMediaType writer extraMedia.media
-    
-let writeThumbnail (writer : BinaryWriter) (thumbnail : Thumbnail) =
-    writer.Write(thumbnail.messageID)
-    writeBytes writer thumbnail.thumbnail

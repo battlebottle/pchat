@@ -14,6 +14,11 @@ var PChatView;
             this.peopleTyping = [];
             this.extraMedias = [];
             this.thumbnails = [];
+            var chatRoomNum = parseInt(window.location.pathname.substring(1));
+            if (isNaN(chatRoomNum)) {
+                chatRoomNum = 0;
+            }
+
             $('#messageListDiv').empty();
             var drawCanvasDiv = $("#drawCanvasDiv");
 
@@ -70,7 +75,7 @@ var PChatView;
             };
 
             viewModel.addPropertyChangedListener(function (prop) {
-                if (prop.type === 4 /* ChatMessages */) {
+                if (prop instanceof ViewModel.ChatMessages) {
                     var chatMessages = prop;
 
                     //document.getElementById('content').innerHTML = chatMessages.sender.name + ":" + chatMessages.message;
@@ -105,11 +110,11 @@ var PChatView;
 
                     //$('#messageListDiv').append('<div id="bottomDiv" />');
                     scrollToBottom();
-                } else if (prop.type === 5 /* PeopleInRoom */) {
+                } else if (prop instanceof ViewModel.PeopleInRoom) {
                     var peopleInRoom = prop;
                     _this.peopleInRoom = peopleInRoom.people;
                     _this.redrawPeopleList();
-                } else if (prop.type === 6 /* PeopleTyping */) {
+                } else if (prop instanceof ViewModel.PeopleTyping) {
                     var peopleTyping = prop;
                     _this.peopleTyping = peopleTyping.people;
                     _this.redrawPeopleList();
@@ -120,7 +125,7 @@ var PChatView;
                     } else {
                         $('#isTypingDiv').css('visibility', 'hidden');
                     }
-                } else if (prop.type === 15 /* ExtraMedias */) {
+                } else if (prop instanceof ViewModel.ExtraMedias) {
                     var extraMedia = prop;
                     extraMedia.extraMedias.forEach(function (feem) {
                         if (!_this.extraMedias.some(function (em) {
@@ -137,9 +142,21 @@ var PChatView;
                                         jDiv.data("extraMediaReceived", true);
                                         var exp = $(".expandedContentDiv", jDiv);
                                         exp.empty();
-                                        if (feem.extraMedia.mediaType === 1 /* Drawing */) {
+                                        if (feem.extraMedia instanceof ViewModel.Drawing) {
                                             var drawing = feem.extraMedia;
-                                            exp.append($(templates.innerContentDiv_Drawing(drawing.drawingData)));
+                                            exp.append($(templates.innerContentDiv_Drawing(drawing, chatRoomNum)));
+                                        }
+
+                                        var drawingImg = $(div).find('.drawingImg');
+                                        var resizeImage = function () {
+                                            var width = drawingImg.width();
+                                            drawingImg.height(width);
+                                        };
+                                        console.log("count:" + drawingImg.length);
+                                        if (drawingImg.length > 0) {
+                                            $(window).resize(resizeImage);
+                                            $(drawingImg).load(resizeImage);
+                                            resizeImage();
                                         }
 
                                         $(div).click(function (evnt) {
@@ -150,11 +167,15 @@ var PChatView;
                                             if (!animating) {
                                                 exp.data("animating", true);
                                                 if (expanded) {
+                                                    resizeImage();
                                                     exp.data("expanded", false);
                                                     exp.slideUp(500, function () {
                                                         exp.data("animating", false);
                                                     });
                                                 } else {
+                                                    exp.show();
+                                                    resizeImage();
+                                                    exp.hide();
                                                     exp.data("expanded", true);
                                                     exp.slideDown(500, function () {
                                                         exp.data("animating", false);
@@ -171,7 +192,7 @@ var PChatView;
                             });
                         }
                     });
-                } else if (prop.type === 13 /* Thumbnails */) {
+                } else if (prop instanceof ViewModel.Thumbnails) {
                     var thumbnails = prop;
                     thumbnails.thumbnails.forEach(function (fetn) {
                         if (!_this.thumbnails.some(function (tn) {
@@ -185,9 +206,8 @@ var PChatView;
                                 var messageID = jDiv.data("messageID");
                                 if (messageID === fetn.messageId) {
                                     var thumbnailImg = $(".thumbnailImg", jDiv);
-                                    thumbnailImg.height(100);
-                                    thumbnailImg.width(100);
-                                    thumbnailImg.attr('src', _this.imageBytesTobase64(fetn.data));
+                                    $(".messageContentDiv", jDiv).addClass("messageContentThumbDiv");
+                                    thumbnailImg.attr('style', HTMLTemplates.HTMLTemplates.messageThumbStyle(true)).attr('src', "thumbs/%c/%t.jpg".replace("%c", chatRoomNum.toString()).replace("%t", fetn.ref.toString()));
                                 }
                             });
                         }
@@ -224,6 +244,16 @@ var PChatView;
                     }
                 }
             });
+            var drawCanvas = $("#drawCanvas");
+            var drawCanvasDiv = $("#drawCanvasDiv");
+            var resizeCanvas = function () {
+                drawCanvas.height(drawCanvas.width());
+                drawCanvasDiv.height(drawCanvas.height() + 12);
+                drawCanvasDiv.css("top", -18 - drawCanvas.width());
+            };
+
+            $(window).resize(resizeCanvas);
+            resizeCanvas();
         }
         PChatView.prototype.imageBytesTobase64 = function (bytes) {
             var byteArrayTobase64 = function (data) {

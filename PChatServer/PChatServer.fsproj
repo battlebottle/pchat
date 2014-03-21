@@ -23,6 +23,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\PChatServer.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
+    <StartArguments>-t</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -70,9 +71,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\pchatTypeScript\pchatTypeScript.csproj">
+      <Name>pchatTypeScript</Name>
+      <Project>{724e2dc3-6490-4b77-9e0d-b2b97f36b0d2}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Suave\suave.fsproj">
       <Name>suave</Name>
       <Project>{3dc9193e-bd0c-4486-9c58-56b630c36623}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\WebpageRenderer\WebpageRenderer.fsproj">
+      <Name>WebpageRenderer</Name>
+      <Project>{55a3a6a0-483b-4c5a-abf6-b7e73c964c0a}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

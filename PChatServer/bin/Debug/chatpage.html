@@ -2,321 +2,12 @@
 
 <html>
 <head>
-<style type="text/css">
-body
-{
-	margin: 0px;
-	font-family: sans-serif;
-}
-
-#headerDiv
-{
-	position: fixed;
-	background:black;
-	height:40px;
-	width: 100%;
-}
-
-#footerDiv
-{
-	position: fixed;
-	background:black;
-	bottom: 0px;
-	height:60px;
-	width: 100%;
-}
-
-.textInput
-{
-	position: absolute;
-	Top: 6px;
-    background-color: white;    
-    border: none;
-    color: #979797;
-    color: black;
-    height: 28px;
-    padding:0px;
-    padding-left:3px;
-    margin-left:84px;
-    width: calc(100% - 325px);    
-    -webkit-appearance: none;
-    border-radius: 0;
-
-}
-hideBG
-{
-    background-color: transparent;
-}
-
-#textInputButton
-{
-	position: absolute;
-	right: 161px;
-	Top: 6px;
-    height: 28px;
-    padding-left:3px;
-    width: 68px;
-    background-color:white;
-    background-image:url('/send_message_black.png');
-    background-repeat:no-repeat;
-    background-position:center; 
-}
-
-#textInputButton:hover {
-    background-color:orange;
-    }
-
-#viewDrawBoxButton
-{
-	position: absolute;
-	right: 84px;
-	Top: 6px;
-    height: 28px;
-    padding-left:3px;
-    width: 68px;
-    background-color:white;
-    background-image:url('/pencil_black.png');
-    background-repeat:no-repeat;/*
-    background-attachment:fixed;*/
-    background-position:center; 
-}
-#viewDrawBoxButton:hover {
-    background-color:orange;
-    }
-
-@media screen and (max-width:767px) {
-    #textInput {
-        margin-left:33px;
-        width: calc(100% - 223px);
-    }
-    #textInputButton {
-	    right: 110px;
-    }
-    #viewDrawBoxButton {
-	    right: 33px;
-    }
-}
-@media screen and (max-width:479px) {
-    #textInput {
-        margin-left:6px;
-        width: calc(100% - 108px);
-    }
-    #textInputButton {
-	    right: 52px;
-        width: 40px;
-    }
-    #viewDrawBoxButton {
-	    right: 6px;
-        width: 40px;
-    }
-}
-
-#drawCanvasDiv
-{
-	position: absolute;
-	left: 84px;
-	Top: -426px;
-    height: 420px;
-    width: 450px;
-    background-color: green;
-    visibility: hidden;
-}
-
-#drawCanvas
-{
-    height: 420px;
-    width: 420px;
-    background-color: blue;
-}
-
-#isTypingDiv
-{
-	position: absolute;
-	color: white;
-	left: 84px;
-	Top: 40px;
-}
-
-#isTypingDiv span
-{
-	font-size: 9px;
-}
-
-div.nameDiv {
-    width: 108px;
-    font-weight: bold;
-}
-
-@media screen and (min-width:768px) {
-    div.nameDiv {
-        float: left;
-        padding-right: 12px;
-        text-align: right;
-        margin-left: -120px;
-    }
-}
-
-div.messageContentDiv
-{
-	min-height:115px;
-}
-
-div.messageDiv
-{
-    padding: 3px;
-	margin-bottom: 9px;
-    background-color: #e8e8e8;
-	clear:both;
-}
-
-div.innerMessageDiv
-{
-	max-width: 600px;
-	margin-left: auto;
-	margin-right: auto;
-	clear:both;
-}
-
-div.innerInnerMessageDiv
-{
-	margin-left: 30px;
-	margin-right: 30px;
-}
-
-@media screen and (min-width:768px) {
-    div.innerInnerMessageDiv {
-        margin-left: 120px;
-        margin-right: 30px;
-    }
-}
-
-@media screen and (max-width:479px) {
-    div.innerInnerMessageDiv {
-        margin-left: 6px;
-        margin-right: 6px;
-    }
-}
-
-#peopleListDiv
-{
-	position: fixed;
-	background: black;
-	right: 0px;
-	top: 40px;
-	bottom: 60px;
-	width: 150px;
-}
-
-@media screen and (max-width:479px) {
-    #peopleListDiv {
-	    width: 0px;
-    }
-}
-
-#topDiv
-{
-	height: 49px;
-}
-#bottomDiv
-{
-	height: 60px;
-}
-
-#messageListDiv{
-	margin-left: 0px;
-	margin-right: 150px;
-    padding-top:49px;
-    padding-bottom: 60px;
-}
-
-@media screen and (max-width:479px) {
-    #messageListDiv {
-	    margin-right: 0px;
-    }
-}
-
-#pushMessagesDiv{
-	float:right;
-}
-
-ul.peopleList{
-	list-style-type: none;
-	margin-left: -20px;
-	color: white;
-}
-
-img.personTypingImageDiv{
-	width: 6px;
-	height: 6px;
-	background-color: orange;
-	margin-bottom: 3px;
-	margin-right: 3px;
-}
-
-img.personImageDiv{
-	width: 6px;
-	height: 6px;
-	background-color: white;
-	margin-bottom: 3px;
-	margin-right: 3px;
-}
-
-div.personBullitDiv {
-	width: 12px;
-	height: 12px;
-	margin-top: 15px;
-	margin-right: 60px;
-	margin-left: -5px;
-	vertical-align: bottom;
-	border-radius: 50%;
-}
-
-div.personBullitDiv_normal {
-	border:1px solid white;
-	background-color: white
-}
-div.personBullitDiv_typing {
-	border:1px solid orange;
-	background-color: orange
-}
-div.personBullitDiv_away {
-	border:1px solid white;
-}
-
-span.personBullitSpan {
-	position:relative;
-	top: -3px;
-	margin-left: 19px;
-	margin-bottom: 150px;
-	vertical-align: top;
-}
-
-div.clickToExpandDiv{
-	font-size: 12px;
-	color: #BA2F2F;
-	margin-top: 5px;
-	margin-bottom: 5px;
-}
-
-h1.embeddedContentTitle{
-	font-size: 23px;
-}
-h1.embeddedContentTitle a:link {text-decoration:none; color: black;}
-h1.embeddedContentTitle a:visited {text-decoration:none; color: black;}
-h1.embeddedContentTitle a:hover {text-decoration:none; color: black;}
-h1.embeddedContentTitle a:active {text-decoration:none; color: black;}
-
-a.embeddedContentText{
-	font-size: 16px;
-}
-a.embeddedContentText:link {text-decoration:none; color: black;}
-a.embeddedContentText:visited {text-decoration:none; color: black;}
-a.embeddedContentText:hover {text-decoration:none; color: black;}
-a.embeddedContentText:active {text-decoration:none; color: black;}
-</style>
+    <link rel="stylesheet" href="chatpage.css">
     <script src="Scripts/jquery-2.1.0.js"></script>
     <script src="Scripts/jquery-ui-1.10.4.js"></script>
     <script src="core.js"></script>
+    <script src="bufferio.js"></script>
+    <script src="chatdatawebsocket.js"></script>
     <script src="HTMLTemplates.js"></script>
     <script src="networkData.js"></script>
     <script src="viewModel.js"></script>
@@ -328,7 +19,9 @@ a.embeddedContentText:active {text-decoration:none; color: black;}
 </head>
 <!--  onload="setTimeout(function(){location.reload()}, 500);" !-->
 <body >
-	<div id="headerDiv"></div>
+	<div id="headerDiv">
+        <span id="titleSpan">PChat</span>
+	</div>
 	<div id="peopleListDiv">
 		<ul class="peopleList" id="peopleList">
 		</ul>
@@ -340,9 +33,15 @@ a.embeddedContentText:active {text-decoration:none; color: black;}
         <div id="viewDrawBoxButton"  style="" ></div>
         <div id="drawCanvasDiv">
     		<canvas id="drawCanvas" height="420" width="420"></canvas>
+            <div id="drawCanvasToolsDiv">
+                <div class="drawCanvasButtonDiv drawCanvasButtonDivSelected" id="drawCanvasButton_pen" ></div>
+                <div class="drawCanvasButtonDiv" id="drawCanvasButton_eraser"></div>
+                <div class="drawCanvasButtonDiv" id="drawCanvasButton_clear"></div>
+            </div>
     	</div>
 		<div id="isTypingDiv" style="visibility:hidden;">
-			<span id="isTypingSpan">Jim is typing...</span>
+			<div id="isTypingBullitDiv" ></div>
+            <span id="isTypingSpan">Jim is typing...</span>
 		</div>
 	</div>
 	<div id="messageListDiv">

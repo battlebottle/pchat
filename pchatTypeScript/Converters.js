@@ -10,9 +10,9 @@ var Converters;
         };
 
         NetworkToVMConverter.messageTypeToMessageType = function (messageType) {
-            if (messageType.messageTypeType === 0 /* Normal */) {
+            if (messageType instanceof NetworkData.Normal) {
                 return new ViewModel.Normal(this.personToPerson(messageType.person));
-            } else if (messageType.messageTypeType === 1 /* Server */) {
+            } else if (messageType instanceof NetworkData.Server) {
                 return new ViewModel.Server();
             } else {
                 throw "no match found";
@@ -20,16 +20,16 @@ var Converters;
         };
 
         NetworkToVMConverter.messageContentToMessageContent = function (messageContent) {
-            return messageContent.map(function (span) {
-                if (span.messageSpanType === 0 /* Text */) {
+            return new ViewModel.MessageContent(messageContent.messageContent.map(function (span) {
+                if (span instanceof NetworkData.Text) {
                     return new ViewModel.Text(span.text);
-                } else if (span.messageSpanType === 1 /* Hightlight */) {
+                } else if (span instanceof NetworkData.Hightlight) {
                     return new ViewModel.Hightlight(span.text);
-                } else if (span.messageSpanType === 2 /* Hyperlink */) {
+                } else if (span instanceof NetworkData.Hyperlink) {
                     var hyperlink = span;
                     return new ViewModel.Hyperlink(hyperlink.text, hyperlink.url);
                 }
-            });
+            }));
         };
 
         NetworkToVMConverter.chatMessageToChatMessage = function (chatMessage) {
@@ -44,9 +44,8 @@ var Converters;
         };
 
         NetworkToVMConverter.mediaTypeToMediaType = function (mediaType) {
-            var mt = NetworkData.INetworkMediaType;
-            if (mediaType.mediaType === 1 /* Drawing */) {
-                return new ViewModel.Drawing(mediaType.drawingData);
+            if (mediaType instanceof NetworkData.Drawing) {
+                return new ViewModel.Drawing(mediaType.drawingData.reference);
             }
             throw "no match found";
         };
@@ -56,7 +55,7 @@ var Converters;
         };
 
         NetworkToVMConverter.thumbnailToThumbnail = function (thumbnail) {
-            return new ViewModel.Thumbnail(thumbnail.id, thumbnail.data);
+            return new ViewModel.Thumbnail(thumbnail.id, thumbnail.data.reference);
         };
         return NetworkToVMConverter;
     })();

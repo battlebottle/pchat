@@ -1,0 +1,449 @@
+﻿
+body
+{
+	margin: 0px;
+	font-family: sans-serif;
+}
+
+#headerDiv
+{
+	position: fixed;
+	background:black;
+	height:40px;
+	width: 100%;
+    z-index:1;
+}
+
+#footerDiv
+{
+	position: fixed;
+	background:black;
+	bottom: 0px;
+	height:60px;
+	width: 100%;
+    z-index:1;
+}
+
+.textInput
+{
+	position: absolute;
+	Top: 6px;
+    background-color: white;    
+    border: none;
+    color: #979797;
+    color: black;
+    height: 28px;
+    padding:0px;
+    padding-left:3px;
+    margin-left:84px;
+    width: calc(100% - 325px);    
+    -webkit-appearance: none;
+    border-radius: 0;
+
+}
+hideBG
+{
+    background-color: transparent;
+}
+
+#textInputButton
+{
+	position: absolute;
+	right: 161px;
+	Top: 6px;
+    height: 28px;
+    padding-left:3px;
+    width: 68px;
+    background-color:white;
+    background-image:url('/send_message_black.png');
+    background-repeat:no-repeat;
+    background-position:center; 
+}
+
+#textInputButton:hover {
+    background-color:orange;
+    }
+
+#textInputButton:active {
+    background-color:black;
+    background-image:url('/send_message_white.png');
+    }
+
+#viewDrawBoxButton
+{
+	position: absolute;
+	right: 84px;
+	Top: 6px;
+    height: 28px;
+    padding-left:3px;
+    width: 68px;
+    background-color:white;
+    background-image:url('/pencil_black.png');
+    background-repeat:no-repeat;
+    background-position:center; 
+}
+#viewDrawBoxButton:hover {
+    background-color:orange;
+    }
+#viewDrawBoxButton:active {
+    background-color:black;
+    background-image:url('/pencil_white.png');
+    }
+
+@media screen and (max-width:767px) {
+    #textInput {
+        margin-left:33px;
+        width: calc(100% - 223px);
+    }
+    #textInputButton {
+	    right: 110px;
+    }
+    #viewDrawBoxButton {
+	    right: 33px;
+    }
+}
+@media screen and (max-width:479px) {
+    #textInput {
+        margin-left:6px;
+        width: calc(100% - 108px);
+    }
+    #textInputButton {
+	    right: 52px;
+        width: 40px;
+    }
+    #viewDrawBoxButton {
+	    right: 6px;
+        width: 40px;
+    }
+}
+
+#drawCanvasDiv
+{
+	position: absolute;
+	left: 84px;
+	Top: -438px;
+    height: 432px;
+    width: 479px;
+    background-color: black;
+    visibility: hidden;
+}
+
+#drawCanvas
+{
+    margin-top: 6px;
+    margin-left: 6px;
+    height: 420px;
+    width: 420px;
+    background-color: black;
+}
+
+#drawCanvasToolsDiv
+{
+	position: absolute;
+    top: 6px;
+    left: 432px;
+    width: 41px;
+    background-color: black;
+}
+
+@media screen and (max-width:767px) {
+    #drawCanvasDiv {left: 33px;}
+}
+
+@media screen and (max-width:479px) {
+    #drawCanvasDiv {
+        left: 6px;
+        width: calc(100% - 12px);
+    }
+    #drawCanvas {
+        width: calc(100% - 59px);
+    }
+    #drawCanvasToolsDiv {
+        left: calc(100% - 47px);
+    }
+}
+
+#isTypingDiv
+{
+	position: absolute;
+	color: white;
+	left: 84px;
+	Top: 40px;
+}
+#isTypingSpan {
+    position:absolute;
+	font-size: 9px;
+    left:14px;
+    top:1px;
+    width:500px;
+}
+@media screen and (max-width:767px) {
+    #isTypingDiv {left:33px;}
+}
+
+@media screen and (max-width:479px) {
+    #isTypingDiv {left:6px;}
+}
+
+div.nameDiv {
+    width: 108px;
+    font-weight: bold;
+    float: left;
+}
+
+span.timeStamp {
+    position: absolute;
+    margin-left: 450px;
+    color: rgb(124, 124, 124);
+    font-weight: bold;
+}
+
+
+@media screen and (min-width:768px) {
+    div.nameDiv {
+        padding-right: 12px;
+        text-align: right;
+        margin-left: -120px;
+    }
+}
+@media screen and (max-width:767px) {
+    span.timeStamp {
+        position:absolute;
+        right: 180px;
+        width: 120px;
+        text-align: right;
+    }
+}
+@media screen and (max-width:479px) {
+    span.timeStamp {right: 6px;}
+}
+
+
+
+@media screen and (max-width:767px) {
+    div.messageContentDiv
+    {
+	    clear:both;
+    }
+}
+div.messageContentThumbDiv
+{
+	min-height:105px;
+}
+
+div.messageDiv
+{
+    padding: 3px;
+	margin-bottom: 9px;
+    background-color: #e8e8e8;
+	clear:both;
+}
+
+div.innerMessageDiv
+{
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
+	clear:both;
+}
+
+div.innerInnerMessageDiv
+{
+	margin-left: 30px;
+	margin-right: 30px;
+}
+
+@media screen and (min-width:768px) {
+    div.innerInnerMessageDiv {
+        margin-left: 100px;
+        margin-right: 50px;
+    }
+}
+
+@media screen and (max-width:479px) {
+    div.innerInnerMessageDiv {
+        margin-left: 6px;
+        margin-right: 6px;
+    }
+}
+
+#peopleListDiv
+{
+	position: fixed;
+	background: black;
+	right: 0px;
+	top: 40px;
+	bottom: 60px;
+	width: 150px;
+    z-index:1;
+}
+
+@media screen and (max-width:479px) {
+    #peopleListDiv {
+	    width: 0px;
+    }
+}
+
+#topDiv
+{
+	height: 49px;
+}
+#bottomDiv
+{
+	height: 60px;
+}
+
+#messageListDiv{
+	margin-left: 0px;
+	margin-right: 150px;
+    padding-top:1600px;
+    padding-bottom: 60px;
+}
+
+@media screen and (max-width:479px) {
+    #messageListDiv {
+	    margin-right: 0px;
+    }
+}
+
+#pushMessagesDiv{
+	float:right;
+}
+
+ul.peopleList{
+	list-style-type: none;
+	margin-left: -20px;
+	color: white;
+}
+
+img.personTypingImageDiv{
+	width: 6px;
+	height: 6px;
+	background-color: orange;
+	margin-bottom: 3px;
+	margin-right: 3px;
+}
+
+img.personImageDiv{
+	width: 6px;
+	height: 6px;
+	background-color: white;
+	margin-bottom: 2px;
+	margin-right: 2px;
+}
+
+img.thumbnailImg {
+}
+
+div.NormalCard {
+    margin-top:5px;
+    margin-bottom:2px;
+}
+
+img.drawingImg {
+    width: 100%;
+}
+
+div.personBullitDiv {
+	width: 12px;
+	height: 12px;
+	margin-top: 15px;
+	margin-right: 60px;
+	margin-left: -5px;
+	vertical-align: bottom;
+	border-radius: 50%;
+}
+
+div.personBullitDiv_normal {
+	border:1px solid white;
+	background-color: white
+}
+div.personBullitDiv_typing {
+	border:1px solid orange;
+	background-color: orange
+}
+div.personBullitDiv_away {
+	border:1px solid white;
+}
+
+
+#isTypingBullitDiv {
+    position:absolute;
+	border-radius: 50%;
+	border:1px solid orange;
+	background-color: orange;
+	width: 9px;
+	height: 9px;
+    }
+
+span.personBullitSpan {
+	position:relative;
+	top: -3px;
+	margin-left: 19px;
+	margin-bottom: 150px;
+	vertical-align: top;
+}
+
+div.clickToExpandDiv{
+	font-size: 12px;
+	color: #BA2F2F;
+	margin-top: 3px;
+	margin-bottom: 5px;
+}
+
+h1.embeddedContentTitle{
+	font-size: 23px;
+}
+h1.embeddedContentTitle a:link {text-decoration:none; color: black;}
+h1.embeddedContentTitle a:visited {text-decoration:none; color: black;}
+h1.embeddedContentTitle a:hover {text-decoration:none; color: black;}
+h1.embeddedContentTitle a:active {text-decoration:none; color: black;}
+
+a.embeddedContentText{
+	font-size: 16px;
+}
+a.embeddedContentText:link {text-decoration:none; color: black;}
+a.embeddedContentText:visited {text-decoration:none; color: black;}
+a.embeddedContentText:hover {text-decoration:none; color: black;}
+a.embeddedContentText:active {text-decoration:none; color: black;}
+
+#titleSpan {
+    font-size:28px;
+	color: white;
+    position:absolute;
+    left:84px;
+    top:5px;
+}
+
+@media screen and (max-width:767px) {
+    #titleSpan {left:33px;}
+}
+
+@media screen and (max-width:479px) {
+    #titleSpan {left:6px;}
+}
+
+@media screen {
+    @-ms-viewport { width: device-width; }
+}
+/*Draw canvas*/
+
+div.drawCanvasButtonDiv 
+{
+    width: 41px;
+    height: 41px;
+    margin-bottom: 6px;
+    background-color:#b6b6b6;
+    background-repeat:no-repeat;
+    background-position:center; 
+}
+div.drawCanvasButtonDiv:hover {background-color:orange;}
+div.drawCanvasButtonDiv:active {background-color:black;}
+div.drawCanvasButtonDivSelected {background-color: white;}
+
+#drawCanvasButton_pen {background-image:url('/pencilTool_black.png');}
+#drawCanvasButton_pen:active {background-image:url('/pencilTool_white.png');}
+#drawCanvasButton_eraser {background-image:url('/eraser_black.png');}
+#drawCanvasButton_eraser:active {background-image:url('/eraser_white.png');}
+#drawCanvasButton_clear {background-image:url('/clear_black.png');}
+#drawCanvasButton_clear:active {background-image:url('/clear_white.png');}

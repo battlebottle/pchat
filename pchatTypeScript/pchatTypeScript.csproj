@@ -18,6 +18,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="app.css" />
+    <Content Include="bufferio.ts" />
+    <Content Include="chatdatawebsocket.ts" />
+    <Content Include="chatpage.css" />
+    <Content Include="clear_black.png" />
+    <Content Include="clear_white.png" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -84,6 +89,8 @@
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tooltip.min.css" />
+    <Content Include="eraser_black.png" />
+    <Content Include="eraser_white.png" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="packages.config" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
@@ -93,6 +100,8 @@
     <Content Include="Content\bootstrap.css.map" />
     <None Include="pchatdev.pubxml" />
     <None Include="Scripts\jquery-2.1.0.intellisense.js" />
+    <Content Include="pencilTool_black.png" />
+    <Content Include="pencilTool_white.png" />
     <Content Include="pencil_black.png" />
     <Content Include="pencil_white.png" />
     <Content Include="Scripts\bootstrap.js" />
@@ -105,6 +114,7 @@
     <Content Include="indexpage.html" />
     <Content Include="send_message_black.png" />
     <Content Include="send_message_white.png" />
+    <Content Include="test.js" />
     <Content Include="web.config" />
     <Content Include="Scripts\jquery-2.1.0.min.map" />
   </ItemGroup>

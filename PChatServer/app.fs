@@ -15,6 +15,8 @@ open System.Collections.Generic
 //open OpenSSL.X509
 //open OpenSSL.Core
 
+
+
 let readLocalFile path =
     async {
         let dir = Environment.CurrentDirectory
@@ -38,6 +40,12 @@ let replaceFeild (fieldName : string, value) (template : string)=
 
 [<EntryPoint>]
 let main argv = 
+
+    let portNum =
+        if argv |> Array.exists ((=) "-t") then
+            8080
+        else
+            80
 
     let indexPage = readLocalFile "/indexpage.html" |> Async.RunSynchronously
 
@@ -72,7 +80,7 @@ let main argv =
           ]
           |> web_server
               { bindings =
-                [ HttpBinding.Create(HTTP, "0.0.0.0", 8080) ]
+                [ HttpBinding.Create(HTTP, "0.0.0.0", portNum) ]
               ; error_handler    = default_error_handler
               ; web_part_timeout = TimeSpan.FromMilliseconds 1000.
               ; listen_timeout   = TimeSpan.FromMilliseconds 2000.

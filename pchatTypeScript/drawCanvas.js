@@ -29,7 +29,9 @@ var DrawCanvas;
             this.previousLineWidth = 2;
             this.currentLineWidth = 2;
             this.drawingMade = false;
+            this.previousMouseTime = Date.now();
             this.brushMode = 0 /* Pen */;
+            this.lastLineWidths = DrawCanvas.createEmptyWidthHistory();
             this.renderingContext = canvas.getContext("2d");
             this.renderingContext.lineCap = "round";
             this.reset();
@@ -50,6 +52,9 @@ var DrawCanvas;
             canvas.addEventListener("mousedown", function (e) {
                 classThis.mouseDown = true;
                 classThis.mouseDownFrames = 0;
+                classThis.previousMouseTime = Date.now();
+                classThis.lastLineWidths = DrawCanvas.createEmptyWidthHistory();
+                classThis.previousLineWidth = 1;
                 e.preventDefault();
             }, false);
             canvas.addEventListener("mouseup", function (e) {
@@ -89,23 +94,27 @@ var DrawCanvas;
             $('#drawCanvasButton_eraser').click(function () {
                 return _this.setBrushMode(4 /* Eraser */);
             });
-            $('#drawCanvasButton_redBrush').click(function () {
-                return _this.setBrushMode(1 /* RedBrush */);
-            });
-            $('#drawCanvasButton_greenBrush').click(function () {
-                return _this.setBrushMode(2 /* GreenBrush */);
-            });
-            $('#drawCanvasButton_blueBrush').click(function () {
-                return _this.setBrushMode(3 /* BlueBrush */);
-            });
             $('#drawCanvasButton_clear').click(function () {
                 return _this.reset();
             });
-            $('#drawCanvasButton_image').click(function () {
-            });
         }
+        DrawCanvas.createEmptyWidthHistory = function () {
+            var array = [];
+            for (var i = 0; i < 10; i++) {
+                array.push(1);
+            }
+            return array;
+        };
+
         DrawCanvas.prototype.setBrushMode = function (brushMode) {
             this.brushMode = brushMode;
+            if (this.brushMode === 0 /* Pen */) {
+                $('#drawCanvasButton_pen').addClass("drawCanvasButtonDivSelected");
+                $('#drawCanvasButton_eraser').removeClass("drawCanvasButtonDivSelected");
+            } else {
+                $('#drawCanvasButton_pen').removeClass("drawCanvasButtonDivSelected");
+                $('#drawCanvasButton_eraser').addClass("drawCanvasButtonDivSelected");
+            }
         };
 
         DrawCanvas.prototype.getDrawingMade = function () {
@@ -123,15 +132,20 @@ var DrawCanvas;
             return new Point(curleft, curtop);
         };
 
+        DrawCanvas.scalePoint = function (point) {
+            var scale = 420 / $('#drawCanvas').width();
+            return new Point(point.x * scale, point.y * scale);
+        };
+
         DrawCanvas.prototype.getMousePosition = function (e) {
             var point = new Point(e.offsetX == undefined ? e.layerX : e.offsetX, e.offsetY == undefined ? e.layerY : e.offsetY);
-            return point;
+            return DrawCanvas.scalePoint(point);
         };
 
         DrawCanvas.prototype.getTouchPosition = function (e) {
             var offset = this.findPos(this.canvas);
             var point = new Point(e.targetTouches[0].pageX - offset.x - (window.pageXOffset || window.document.body.scrollLeft) + (window.document.body.clientLeft || 0), e.targetTouches[0].pageY - offset.y - (window.pageYOffset || window.document.body.scrollTop) + (window.document.body.clientTop || 0));
-            return point;
+            return DrawCanvas.scalePoint(point);
         };
 
         DrawCanvas.prototype.reset = function () {
@@ -145,150 +159,54 @@ var DrawCanvas;
             return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
         };
 
-        DrawCanvas.prototype.drawLine = function () {
-            if (this.brushMode === 0 /* Pen */) {
-                this.drawingMade = true;
+        DrawCanvas.getInnerPoint = function (point1, point2, progress) {
+            return new Point(point1.x * (progress) + point2.x * (1 - progress), point1.y * (progress) + point2.y * (1 - progress));
+        };
 
+        DrawCanvas.prototype.drawLine = function () {
+            var currentTime = Date.now();
+            var timeDif = currentTime - this.previousMouseTime;
+            console.log("" + timeDif);
+
+            var penMode = (this.brushMode === 0 /* Pen */);
+            this.drawingMade = true;
+
+            var dist = DrawCanvas.getDistance(this.previousMousePosition, this.currentMousePosition);
+            var lineWidthMult = dist / (timeDif / 10);
+            this.renderingContext.strokeStyle = penMode ? "black" : "white"; //"rgba(0,0,0,%a)".replace("%a", Math.min(1 / dist, 1).toString());
+            this.currentLineWidth = Math.max(Math.min(2 + lineWidthMult / 2, 20), 2) * (penMode ? 1 : 3);
+
+            this.currentLineWidth > this.previousLineWidth * 5 ? this.previousLineWidth : this.currentLineWidth;
+            this.lastLineWidths.push(this.currentLineWidth);
+            while (this.lastLineWidths.length > 3)
+                this.lastLineWidths.splice(0, 1);
+            var avgLineWidth = this.lastLineWidths.reduce(function (prev, cur) {
+                return prev + cur;
+            }, 0) / this.lastLineWidths.length;
+
+            this.currentLineWidth = avgLineWidth;
+
+            var steps = Math.ceil(dist / 3) + 1;
+
+            for (var i = 1; i < steps; i++) {
+                var point1 = DrawCanvas.getInnerPoint(this.previousMousePosition, this.currentMousePosition, (i - 1) / (steps - 1));
+                var point2 = DrawCanvas.getInnerPoint(this.previousMousePosition, this.currentMousePosition, i / (steps - 1));
+
+                //point1 = this.previousMousePosition;
+                //point2 = this.currentMousePosition;
                 this.renderingContext.beginPath();
-                this.renderingContext.moveTo(this.previousMousePosition.x, this.previousMousePosition.y);
-                this.renderingContext.lineTo(this.currentMousePosition.x, this.currentMousePosition.y);
-                var dist = DrawCanvas.getDistance(this.previousMousePosition, this.currentMousePosition);
-                var t = Math.min(1 / dist, 1).toString();
-                this.renderingContext.strokeStyle = "black"; //"rgba(0,0,0,%a)".replace("%a", Math.min(1 / dist, 1).toString());
-                this.previousLineWidth = this.currentLineWidth;
-                this.currentLineWidth = Math.max(Math.min(2 + dist / 2, 20), 2);
-                this.renderingContext.lineWidth = this.currentLineWidth;
+                this.renderingContext.moveTo(point1.x, point1.y);
+                this.renderingContext.lineTo(point2.x, point2.y);
+                this.renderingContext.lineWidth = this.currentLineWidth + (this.previousLineWidth - this.currentLineWidth) * (i / (steps - 1));
                 this.renderingContext.stroke();
                 this.renderingContext.closePath();
-            } else {
-                this.drawLine_();
+                this.previousMouseTime = currentTime;
             }
-        };
-
-        DrawCanvas.prototype.getTessalatedPoints = function (start, end, steps) {
-            var getInnerPoint = function (start, end, offset) {
-                return new Point((start.x - end.x) * offset + start.x, (start.y - end.y) * offset + start.y);
-            };
-
-            var points = [];
-            for (var i = 0; i < steps - 1; i++) {
-                points.push(getInnerPoint(start, end, (i + 1) / steps));
-            }
-            points.push(end);
-            return points;
-        };
-
-        DrawCanvas.prototype.rand = function (num) {
-            return (Math.random() * num) - (num / 2);
-        };
-
-        DrawCanvas.prototype.drawLine_ = function () {
-            var _this = this;
-            this.drawingMade = true;
-
-            this.renderingContext.beginPath();
-
-            //this.renderingContext.moveTo(this.previousMousePosition.x, this.previousMousePosition.y);
-            //this.renderingContext.lineTo(this.currentMousePosition.x, this.currentMousePosition.y);
-            var dist = DrawCanvas.getDistance(this.previousMousePosition, this.currentMousePosition);
-
-            //if (this.mouseDownFrames % 150 == 0) {
-            //    //alert(this.previousMousePosition.x + "," + this.previousMousePosition.y + " " +
-            //    //    this.currentMousePosition.x + "," + this.currentMousePosition.y
-            //    //    );
-            //    //alert((window.pageYOffset || window.document.body.scrollTop) - (window.document.body.clientTop || 0));
-            //    alert(1 / dist);
-            //}
-            var t = Math.min(1 / dist, 1).toString();
-
-            //this.renderingContext.strokeStyle = "rgba(0,0,0,%a)".replace("%a", Math.min(1 / dist, 1).toString());
             this.previousLineWidth = this.currentLineWidth;
-            this.currentLineWidth = Math.max(Math.min(2 + dist / 2, 20), 2);
-            this.renderingContext.fillStyle = "rgba(0,0,0,%a)".replace("%a", (0.2).toString());
-            this.renderingContext.lineWidth = 3;
-
-            //this.renderingContext.lineWidth = this.currentLineWidth;
-            //this.renderingContext.stroke();
-            var rnd = function () {
-                return _this.rand(dist);
-            };
-
-            var drawDot = function (point, radius, opacity) {
-                var x = point.x;
-                var y = point.y;
-                _this.renderingContext.beginPath();
-                var grd = _this.renderingContext.createRadialGradient(x, y, radius * 0.7, x, y, radius);
-                var colStr = "%r,%g,%b".replace("%r", Math.floor(50 + _this.rand(10)).toString()).replace("%g", Math.floor(130 + _this.rand(10)).toString()).replace("%b", Math.floor(10 + _this.rand(10)).toString());
-                grd.addColorStop(0, "rgba(%col,%opacity)".replace("%col", colStr).replace("%opacity", (0.03 * opacity).toString()));
-                grd.addColorStop(1, "rgba(%col,0)".replace("%col", colStr));
-                _this.renderingContext.fillStyle = grd;
-                _this.renderingContext.arc(x, y, radius, 0, 2 * Math.PI);
-                _this.renderingContext.fill();
-                _this.renderingContext.closePath();
-            };
-
-            var minBrush = 5;
-            this.getTessalatedPoints(this.previousMousePosition, this.currentMousePosition, 8 * (Math.min(dist, minBrush) / minBrush)).forEach(function (point) {
-                drawDot(new Point(point.x + rnd(), point.y + rnd()), Math.min(30, dist + minBrush), 1);
-                //for (var i = 0; i < 3; i++) {
-                //    drawDot(new Point(point.x + rnd() * 2, point.y + rnd() * 2), Math.min(30, rnd() + dist / 2 + 2), Math.min(1, dist / 5));
-                //}
-            });
-        };
-
-        DrawCanvas.prototype.drawLine4 = function () {
-            var _this = this;
-            this.drawingMade = true;
-
-            this.renderingContext.beginPath();
-
-            //this.renderingContext.moveTo(this.previousMousePosition.x, this.previousMousePosition.y);
-            //this.renderingContext.lineTo(this.currentMousePosition.x, this.currentMousePosition.y);
-            var dist = DrawCanvas.getDistance(this.previousMousePosition, this.currentMousePosition);
-
-            //if (this.mouseDownFrames % 150 == 0) {
-            //    //alert(this.previousMousePosition.x + "," + this.previousMousePosition.y + " " +
-            //    //    this.currentMousePosition.x + "," + this.currentMousePosition.y
-            //    //    );
-            //    //alert((window.pageYOffset || window.document.body.scrollTop) - (window.document.body.clientTop || 0));
-            //    alert(1 / dist);
-            //}
-            var t = Math.min(1 / dist, 1).toString();
-
-            //this.renderingContext.strokeStyle = "rgba(0,0,0,%a)".replace("%a", Math.min(1 / dist, 1).toString());
-            this.previousLineWidth = this.currentLineWidth;
-            this.currentLineWidth = Math.max(Math.min(2 + dist / 2, 20), 2);
-            this.renderingContext.fillStyle = "rgba(0,0,0,%a)".replace("%a", (0.2).toString());
-            this.renderingContext.lineWidth = 3;
-
-            //this.renderingContext.lineWidth = this.currentLineWidth;
-            //this.renderingContext.stroke();
-            var rnd = function () {
-                return _this.rand(dist);
-            };
-
-            var drawDot = function (point, radius, opacity) {
-                var x = point.x;
-                var y = point.y;
-                _this.renderingContext.beginPath();
-                var grd = _this.renderingContext.createRadialGradient(x, y, radius * 0.4, x, y, radius);
-                var colStr = "%r,%g,%b".replace("%r", Math.floor(50 + _this.rand(10)).toString()).replace("%g", Math.floor(130 + _this.rand(10)).toString()).replace("%b", Math.floor(10 + _this.rand(10)).toString());
-                grd.addColorStop(0, "rgba(%col,%opacity)".replace("%col", colStr).replace("%opacity", (0.3 * opacity).toString()));
-                grd.addColorStop(1, "rgba(%col,0)".replace("%col", colStr));
-                _this.renderingContext.fillStyle = grd;
-                _this.renderingContext.arc(x, y, radius, 0, 2 * Math.PI);
-                _this.renderingContext.fill();
-                _this.renderingContext.closePath();
-            };
-
-            drawDot(new Point(this.currentMousePosition.x + rnd(), this.currentMousePosition.y + rnd()), Math.min(30, dist + 2), Math.min(1, dist / 5));
-            for (var i = 0; i < 3; i++) {
-                drawDot(new Point(this.currentMousePosition.x + rnd() * 2, this.currentMousePosition.y + rnd() * 2), Math.min(30, rnd() + dist / 2 + 2), Math.min(1, dist / 5));
-            }
         };
 
         DrawCanvas.prototype.getPngArrayBuffer = function () {
-            var dataURL = this.canvas.toDataURL("image/jpeg", 0.8);
+            var dataURL = this.canvas.toDataURL("image/jpeg", 0.01);
 
             var string_base64 = dataURL.replace(/^data:image\/(png|jpeg);base64,/, "");
 

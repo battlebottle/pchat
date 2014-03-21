@@ -3,7 +3,15 @@
 /// <reference path="chatView.ts" />
 /// <reference path="networkData.ts" />
 /// <reference path="converters.ts" />
+/// <reference path="networkData.ts" />
+/// <reference path="chatdatawebsocket.ts" />
 "use strict";
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var PCHat = (function () {
     function PCHat(viewModel) {
         var _this = this;
@@ -24,176 +32,155 @@ var PCHat = (function () {
         var test = parseInt(t1);
         var test2 = window.location.pathname.substring(1);
 
+        var serialise = NetworkData.NetworkDataBase.serialise;
+
         viewModel.addPropertyChangedListener(function (prop) {
-            if (prop.type === 3 /* ChatMessage */) {
+            if (prop instanceof ViewModel.ChatMessage) {
                 var tprop = prop;
-            } else if (prop.type === 7 /* SendMessageText */) {
+            } else if (prop instanceof ViewModel.SendMessageText) {
                 var sendMessageText = prop;
                 if (sendMessageText.messageText.length > _this.sendMessageText.length && _this.me !== null) {
                     _this.userTyping = true;
-                    var bw = new NetworkData.ArrayBufferWriter();
-                    bw.writePersonStartedTyping(new NetworkData.PersonStartedTyping(_this.me));
-                    connection.send(bw.toByteArray());
+                    connection.send(new NetworkData.PersonStartedTyping(_this.me));
                     _this.lastTypingTime = Date.now();
                     setTimeout(function () {
                         if (Date.now() - _this.lastTypingTime > 2500) {
                             _this.userTyping = false;
-                            connection.send(new NetworkData.PersonStoppedTyping(_this.me).serialise());
+                            connection.send(new NetworkData.PersonStoppedTyping(_this.me));
                         }
                     }, 3000);
                 }
 
                 _this.sendMessageText = sendMessageText.messageText;
-            } else if (prop.type === 8 /* SendMessageButtonClick */) {
+            } else if (prop instanceof ViewModel.SendMessageButtonClick) {
                 if (_this.me === null) {
-                    var bw = new NetworkData.ArrayBufferWriter();
-                    bw.writeRequestName(new NetworkData.RequestName(_this.sendMessageText));
-                    connection.send(bw.toByteArray());
+                    connection.send(new NetworkData.RequestName(_this.sendMessageText));
                 } else {
                     if (_this.sendMessageText !== "" || _this.vmSendDrawing.drawingData.isSome()) {
                         _this.messagesSentCounter = _this.messagesSentCounter + 1;
-                        connection.send(new NetworkData.ChatMessage(new NetworkData.Normal(_this.me), [new NetworkData.Text(_this.sendMessageText)], _this.messagesSentCounter, _this.vmSendDrawing.drawingData.isSome(), _this.vmSendDrawing.drawingData.isSome(), _this.messagesSentCounter).serialise());
+                        connection.send(new NetworkData.ChatMessage(new NetworkData.Normal(_this.me), new NetworkData.MessageContent([new NetworkData.Text(_this.sendMessageText)]), _this.messagesSentCounter, _this.vmSendDrawing.drawingData.isSome(), _this.vmSendDrawing.drawingData.isSome(), _this.messagesSentCounter));
                         _this.userTyping = false;
-                        connection.send(new NetworkData.PersonStoppedTyping(_this.me).serialise());
+                        connection.send(new NetworkData.PersonStoppedTyping(_this.me));
                         if (_this.vmSendDrawing.drawingData.isSome()) {
-                            connection.send(new NetworkData.ExtraMedia(_this.messagesSentCounter, new NetworkData.Drawing(_this.vmSendDrawing.drawingData.getValue())).serialise());
+                            connection.send(new NetworkData.ExtraMedia(_this.messagesSentCounter, new NetworkData.Drawing(new NetworkData.ImageEmbdedded(_this.vmSendDrawing.drawingData.getValue()))));
                         }
                     }
                 }
-            } else if (prop.type === 11 /* SendDrawing */) {
+            } else if (prop instanceof ViewModel.SendDrawing) {
                 var sendDrawing = prop;
                 _this.vmSendDrawing = sendDrawing;
             }
         });
 
-        //ws://localhost:1900/ws://pchatdev.cloudapp.net:1900/
-        var connection = new WebSocket('ws://' + window.location.hostname + ':1900/');
+        var connection;
 
-        connection.binaryType = 'arraybuffer';
+        var setUpConnection = function () {
+            connection = new ChatDataWebSocket(window.location.hostname);
 
-        connection.onopen = function (ev) {
-            connection.send(new NetworkData.RequestChatConnection(_this.chatRoomNum).serialise());
-        };
+            connection.onopen = function (ev) {
+                connection.send(new NetworkData.RequestChatConnection(_this.chatRoomNum));
 
-        connection.onmessage = function (ev) {
+                connection.onclose = function (ev) {
+                    viewModel.setProp(new ViewModel.PeopleInRoom([]));
+                    addMessage(createServerMessage("Connection to server lost...", true));
+                    var connectionAttempCount = 0;
+                    var reconnect = function () {
+                        if (!connection.isOpen()) {
+                            connectionAttempCount += 1;
+                            if (connectionAttempCount > 1) {
+                                addMessage(createServerMessage("reconnection attempt failed.", true));
+                            }
+                            addMessage(createServerMessage("attempting to reconnect... (attempt %%)".replace("%%", connectionAttempCount.toString()), false));
+                            setUpConnection();
+                            setTimeout(reconnect, 5000);
+                        }
+                    };
+                    reconnect();
+                };
+            };
+
+            var createServerMessage = function (message, highlight) {
+                return new ViewModel.ChatMessage(new ViewModel.Server(), new ViewModel.MessageContent([(highlight ? new ViewModel.Hightlight(message) : new ViewModel.Text(message))]), Date.now(), _this.messagesReceivedCounter, false, false);
+            };
+
+            var addMessage = function (chatMessage) {
+                _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
+                _this.vmChatMessages.chatMessages.push(chatMessage);
+                viewModel.setProp(_this.vmChatMessages);
+            };
+
             var conv = Converters.NetworkToVMConverter;
-            console.log(ev.data.byteLength);
-            var chatData = _this.bufferToPChatData(ev.data);
 
-            if (chatData.type === 1 /* ChatMessage */) {
-                _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
-                var vmChatMessage = conv.chatMessageToChatMessage(chatData);
-                _this.vmChatMessages.chatMessages.push(vmChatMessage);
-                viewModel.setProp(_this.vmChatMessages);
-            } else if (chatData.type === 2 /* PersonStartedTyping */) {
-                var vmp = conv.personToPerson(chatData.person);
-                if (!_this.vmPeopleTyping.people.some(function (p) {
-                    return p.id === vmp.id && p.name === vmp.name;
-                })) {
-                    _this.vmPeopleTyping.people.push(vmp);
-                    viewModel.setProp(_this.vmPeopleTyping);
+            connection.onchatdata = function (chatData) {
+                if (chatData instanceof NetworkData.ChatMessage) {
+                    _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
+                    var vmChatMessage = conv.chatMessageToChatMessage(chatData);
+                    _this.vmChatMessages.chatMessages.push(vmChatMessage);
+                    viewModel.setProp(_this.vmChatMessages);
+                } else if (chatData instanceof NetworkData.PersonStartedTyping) {
+                    var vmp = conv.personToPerson(chatData.person);
+                    if (!_this.vmPeopleTyping.people.some(function (p) {
+                        return p.id === vmp.id && p.name === vmp.name;
+                    })) {
+                        _this.vmPeopleTyping.people.push(vmp);
+                        viewModel.setProp(_this.vmPeopleTyping);
+                    }
+                } else if (chatData instanceof NetworkData.PersonStoppedTyping) {
+                    var vmp = conv.personToPerson(chatData.person);
+                    if (_this.vmPeopleTyping.people.some(function (p) {
+                        return p.id === vmp.id && p.name === vmp.name;
+                    })) {
+                        _this.vmPeopleTyping.people = _this.vmPeopleTyping.people.filter(function (p) {
+                            return p.id !== vmp.id || p.name !== vmp.name;
+                        });
+                        viewModel.setProp(_this.vmPeopleTyping);
+                    }
+                } else if (chatData instanceof NetworkData.RequestNameAccepted) {
+                    var requestNameAccepted = chatData;
+                    _this.me = requestNameAccepted.person;
+                    viewModel.setProp(new ViewModel.Me(conv.personToPerson(requestNameAccepted.person)));
+                    _this.vmChatMessages.chatMessages = [];
+                    viewModel.setProp(_this.vmChatMessages);
+                } else if (chatData instanceof NetworkData.PeopleInRoom) {
+                    var peopleInRoom = chatData;
+                    viewModel.setProp(conv.peopleInRoomToPeopleInRoom(peopleInRoom));
+                } else if (chatData instanceof NetworkData.MessageHistory) {
+                    var messageHistory = chatData;
+                    _this.vmChatMessages = new ViewModel.ChatMessages(messageHistory.messages.map(function (m) {
+                        return conv.chatMessageToChatMessage(m);
+                    }));
+                    _this.vmExtraMedias = new ViewModel.ExtraMedias(messageHistory.extraMedia.map(function (em) {
+                        return conv.extraMediaToExtraMedia(em);
+                    }));
+                    _this.vmThumbnails = new ViewModel.Thumbnails(messageHistory.thumbnails.map(function (t) {
+                        return conv.thumbnailToThumbnail(t);
+                    }));
+                    viewModel.setProp(_this.vmChatMessages);
+                    viewModel.setProp(_this.vmExtraMedias);
+                    viewModel.setProp(_this.vmThumbnails);
+                } else if (chatData instanceof NetworkData.ExtraMedia) {
+                    var extraMedia = chatData;
+                    _this.vmExtraMedias.extraMedias.push(conv.extraMediaToExtraMedia(extraMedia));
+                    viewModel.setProp(_this.vmExtraMedias);
+                } else if (chatData instanceof NetworkData.Thumbnail) {
+                    var thumbnail = chatData;
+                    _this.vmThumbnails.thumbnails.push(conv.thumbnailToThumbnail(thumbnail));
+                    viewModel.setProp(_this.vmThumbnails);
+                } else if (chatData instanceof NetworkData.RequestNameRejected) {
+                    var nameRejected = chatData;
+                    _this.vmChatMessages.chatMessages.push(new ViewModel.ChatMessage(new ViewModel.Server(), new ViewModel.MessageContent([new ViewModel.Hightlight(nameRejected.reason)]), 0, _this.messagesReceivedCounter, false, false));
+                    _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
+                    viewModel.setProp(_this.vmChatMessages);
+                } else if (chatData instanceof NetworkData.RequestChatConnectionAccepted) {
+                    var accepted = chatData;
+                    _this.vmChatMessages.chatMessages.push(new ViewModel.ChatMessage(new ViewModel.Server(), new ViewModel.MessageContent([new ViewModel.Text("Enter a name you wish to use in the room")]), 0, _this.messagesReceivedCounter, false, false));
+                    _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
+                    viewModel.setProp(_this.vmChatMessages);
                 }
-            } else if (chatData.type === 3 /* PersonStoppedTyping */) {
-                var vmp = conv.personToPerson(chatData.person);
-                if (_this.vmPeopleTyping.people.some(function (p) {
-                    return p.id === vmp.id && p.name === vmp.name;
-                })) {
-                    _this.vmPeopleTyping.people = _this.vmPeopleTyping.people.filter(function (p) {
-                        return p.id !== vmp.id || p.name !== vmp.name;
-                    });
-                    viewModel.setProp(_this.vmPeopleTyping);
-                }
-            } else if (chatData.type === 11 /* RequestNameAccepted */) {
-                var requestNameAccepted = chatData;
-                _this.me = requestNameAccepted.person;
-                viewModel.setProp(new ViewModel.Me(conv.personToPerson(requestNameAccepted.person)));
-                _this.vmChatMessages.chatMessages = [];
-                viewModel.setProp(_this.vmChatMessages);
-            } else if (chatData.type === 7 /* PeopleInRoom */) {
-                var peopleInRoom = chatData;
-                viewModel.setProp(conv.peopleInRoomToPeopleInRoom(peopleInRoom));
-            } else if (chatData.type === 8 /* MessageHistory */) {
-                var messageHistory = chatData;
-                _this.vmChatMessages = new ViewModel.ChatMessages(messageHistory.messages.map(function (m) {
-                    return conv.chatMessageToChatMessage(m);
-                }));
-                viewModel.setProp(_this.vmChatMessages);
-            } else if (chatData.type === 14 /* ExtraMedia */) {
-                var extraMedia = chatData;
-                _this.vmExtraMedias.extraMedias.push(conv.extraMediaToExtraMedia(extraMedia));
-                viewModel.setProp(_this.vmExtraMedias);
-            } else if (chatData.type === 13 /* Thumbnail */) {
-                var thumbnail = chatData;
-                _this.vmThumbnails.thumbnails.push(conv.thumbnailToThumbnail(thumbnail));
-                viewModel.setProp(_this.vmThumbnails);
-            } else if (chatData.type === 12 /* RequestNameRejected */) {
-                var nameRejected = chatData;
-                _this.vmChatMessages.chatMessages.push(new ViewModel.ChatMessage(new ViewModel.Server(), [new ViewModel.Hightlight(nameRejected.reason)], 0, _this.messagesReceivedCounter, false, false));
-                _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
-                viewModel.setProp(_this.vmChatMessages);
-            } else if (chatData.type === 16 /* RequestChatConnectionAccepted */) {
-                var accepted = chatData;
-                _this.vmChatMessages.chatMessages.push(new ViewModel.ChatMessage(new ViewModel.Server(), [new ViewModel.Text("Enter a name you wish to use in the room")], 0, _this.messagesReceivedCounter, false, false));
-                _this.messagesReceivedCounter = _this.messagesReceivedCounter + 1;
-                viewModel.setProp(_this.vmChatMessages);
-            }
+            };
         };
-        //var clickResponse = () => {
-        //    var inputText = $("#textInput").val();
-        //    $("#textInput").val("");
-        //    if (this.me === null) {
-        //        var bw = new NetworkData.ArrayBufferWriter();
-        //        bw.writeRequestName(new NetworkData.RequestName(inputText));
-        //        connection.send(bw.toByteArray());
-        //    } else {
-        //        var bw = new NetworkData.ArrayBufferWriter();
-        //        bw.writeChatMessage(new NetworkData.ChatMessage(this.me, inputText, 0));
-        //        connection.send(bw.toByteArray());
-        //    }
-        //};
-        //
-        //
-        //$("#textInputButton").click(clickResponse);
-        //$("#textInput").keyup((e) => { if (e.keyCode == 13) { clickResponse(); } });
+        setUpConnection();
     }
-    PCHat.prototype.bufferToPChatData = function (arrayBuffer) {
-        var reader = new NetworkData.ArrayBufferReader(arrayBuffer);
-        var headerByte = reader.readByte();
-        if (headerByte === 0) {
-            var chatMessage = reader.readChatMessage();
-            return chatMessage;
-        } else if (headerByte === 1) {
-            var personStartedTyping = reader.readPersonStartedTyping();
-            return personStartedTyping;
-        } else if (headerByte === 2) {
-            var personStoppedTyping = reader.readPersonStoppedTyping();
-            return personStoppedTyping;
-        } else if (headerByte === 6) {
-            var peopleInRoom = reader.readPeopleInRoom();
-            return peopleInRoom;
-        } else if (headerByte === 7) {
-            var messageHistory = reader.readMessageHistory();
-            return messageHistory;
-        } else if (headerByte === 9) {
-            var requestedNameAccepted = reader.readRequestNameAccepted();
-            return requestedNameAccepted;
-        } else if (headerByte === 10) {
-            var extraMedia = reader.readExtraMedia();
-            return extraMedia;
-        } else if (headerByte === 11) {
-            var thumbnail = reader.readThumbnail();
-            return thumbnail;
-        } else if (headerByte === 12) {
-            var accepted = reader.readRequestChatConnectionAccepted();
-            return accepted;
-        } else if (headerByte === 13) {
-            var rejected = reader.readRequestChatConnectionRejected();
-            return rejected;
-        } else if (headerByte === 14) {
-            var rejected = reader.readRequestNameRejected();
-            return rejected;
-        }
-    };
     return PCHat;
 })();
 
@@ -205,17 +192,58 @@ function bin2String(array) {
     return result;
 }
 
+var Test = (function () {
+    function Test() {
+    }
+    return Test;
+})();
+
+var Test2 = (function (_super) {
+    __extends(Test2, _super);
+    function Test2() {
+        _super.apply(this, arguments);
+    }
+    return Test2;
+})(Test);
+var Test3 = (function (_super) {
+    __extends(Test3, _super);
+    function Test3() {
+        _super.apply(this, arguments);
+    }
+    return Test3;
+})(Test);
+
 window.onload = function () {
     var jim = new ViewModel.Person(1, "Jim");
+
+    var getName = function () {
+        var funcNameRegex = /function (.{1,})\(/;
+        var results = (funcNameRegex).exec((this).constructor.toString());
+        return (results && results.length > 1) ? results[1] : "";
+    };
 
     var vm = new ViewModel.ViewModel([
         new ViewModel.Person(1, "Jim"),
         new ViewModel.PeopleInRoom([jim, jim])
     ], function (prop) {
-        return ViewModel.IPChatViewModelEnum[prop.type];
+        var t = getName.call(prop);
+        return t;
     });
 
     var view = new PChatView.PChatView(vm);
     var pchat = new PCHat(vm);
+
+    var testFunc = function (testObj) {
+        if (testObj instanceof Test2) {
+            console.log("test2");
+        } else if (testObj instanceof Test3) {
+            console.log("test3");
+        }
+    };
+
+    var test = new Test2();
+    testFunc(test);
+    test = new Test3();
+    testFunc(test);
 };
 //# sourceMappingURL=app.js.map

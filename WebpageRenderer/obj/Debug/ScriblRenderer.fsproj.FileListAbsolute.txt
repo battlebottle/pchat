@@ -1,0 +1,133 @@
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe.config
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.XML
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.pdb
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\Awesomium.Core.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\Awesomium.Core.xml
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.xml
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\icudt.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\avcodec-53.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\avformat-53.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\avutil-51.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\libEGL.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\libGLESv2.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium_process
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\inspector.pak
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\bin\Debug\xinput9_1_0.dll
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.exe
+C:\Users\Brian\Documents\Visual Studio 2012\Projects\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.pdb
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe.config
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.XML
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.pdb
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Awesomium.Core.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Awesomium.Core.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\icudt.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avcodec-53.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avformat-53.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avutil-51.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\libEGL.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\libGLESv2.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium_process
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\inspector.pak
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\xinput9_1_0.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.fsprojResolveAssemblyReference.cache
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.exe
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.pdb
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.Edm.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.OData.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Configuration.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Storage.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\System.Spatial.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.Edm.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.OData.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Storage.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\System.Spatial.xml
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\Microsoft.Data.Edm.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\Microsoft.Data.OData.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\System.Spatial.resources.dll
+C:\Users\Brian\SkyDrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe.config
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.XML
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.exe
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ScriblRenderer.pdb
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.Edm.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.OData.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Configuration.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Storage.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\System.Spatial.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Awesomium.Core.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.Edm.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.Data.OData.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\Microsoft.WindowsAzure.Storage.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\FSharp.Core.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\System.Spatial.xml
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\Microsoft.Data.Edm.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\Microsoft.Data.OData.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\de\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\es\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\fr\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\it\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ja\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ko\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\ru\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hans\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\zh-Hant\System.Spatial.resources.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\icudt.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avcodec-53.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avformat-53.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\avutil-51.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\libEGL.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\libGLESv2.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\awesomium_process
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\inspector.pak
+E:\skydrive\ScriblePrototype2\ScriblRenderer\bin\Debug\xinput9_1_0.dll
+E:\skydrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.exe
+E:\skydrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.pdb
+E:\skydrive\ScriblePrototype2\ScriblRenderer\obj\Debug\ScriblRenderer.fsprojResolveAssemblyReference.cache

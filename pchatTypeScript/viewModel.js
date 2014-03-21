@@ -41,52 +41,89 @@ var ViewModel;
     })();
     _ViewModel.ViewModel = ViewModel;
 
-    (function (IPChatViewModelEnum) {
-        IPChatViewModelEnum[IPChatViewModelEnum["Person"] = 0] = "Person";
-        IPChatViewModelEnum[IPChatViewModelEnum["Me"] = 1] = "Me";
-        IPChatViewModelEnum[IPChatViewModelEnum["Theme"] = 2] = "Theme";
-        IPChatViewModelEnum[IPChatViewModelEnum["ChatMessage"] = 3] = "ChatMessage";
-        IPChatViewModelEnum[IPChatViewModelEnum["ChatMessages"] = 4] = "ChatMessages";
-        IPChatViewModelEnum[IPChatViewModelEnum["PeopleInRoom"] = 5] = "PeopleInRoom";
-        IPChatViewModelEnum[IPChatViewModelEnum["PeopleTyping"] = 6] = "PeopleTyping";
-        IPChatViewModelEnum[IPChatViewModelEnum["SendMessageText"] = 7] = "SendMessageText";
-        IPChatViewModelEnum[IPChatViewModelEnum["SendMessageButtonClick"] = 8] = "SendMessageButtonClick";
-        IPChatViewModelEnum[IPChatViewModelEnum["AutoCompleteText"] = 9] = "AutoCompleteText";
-        IPChatViewModelEnum[IPChatViewModelEnum["SendImage"] = 10] = "SendImage";
-        IPChatViewModelEnum[IPChatViewModelEnum["SendDrawing"] = 11] = "SendDrawing";
-        IPChatViewModelEnum[IPChatViewModelEnum["Thumbnail"] = 12] = "Thumbnail";
-        IPChatViewModelEnum[IPChatViewModelEnum["Thumbnails"] = 13] = "Thumbnails";
-        IPChatViewModelEnum[IPChatViewModelEnum["ExtraMedia"] = 14] = "ExtraMedia";
-        IPChatViewModelEnum[IPChatViewModelEnum["ExtraMedias"] = 15] = "ExtraMedias";
-    })(_ViewModel.IPChatViewModelEnum || (_ViewModel.IPChatViewModelEnum = {}));
-    var IPChatViewModelEnum = _ViewModel.IPChatViewModelEnum;
+    //export enum IPChatViewModelEnum
+    //{
+    //    Person,
+    //    Me,
+    //    Theme,
+    //    ChatMessage,
+    //    ChatMessages,
+    //    PeopleInRoom,
+    //    PeopleTyping,
+    //    SendMessageText,
+    //    SendMessageButtonClick,
+    //    AutoCompleteText,
+    //    SendImage,
+    //    SendDrawing,
+    //    Thumbnail,
+    //    Thumbnails,
+    //    ExtraMedia,
+    //    ExtraMedias
+    //}
+    //
+    //export enum IViewModelMediaType {
+    //    Image,
+    //    Drawing,
+    //    TwitterSummary,
+    //    TwitterVideo
+    //}
+    //
+    //export enum IViewModelMessageSpan {
+    //    Text,
+    //    Hightlight,
+    //    Hyperlink
+    //}
+    //
+    //export enum IViewModelMessageType {
+    //    Normal,
+    //    Server
+    //}
+    //export interface ViewModelData<T>
+    //{
+    //    type:T
+    //}
+    //export interface ViewModelMediaType {
+    //    mediaType: IViewModelMediaType
+    //}
+    //
+    //export interface ViewModelMessageSpan {
+    //    messageSpanType: IViewModelMessageSpan
+    //}
+    //
+    //export interface ViewModelMessageType {
+    //    messageTypeType: IViewModelMessageType
+    //}
+    //base classes
+    var ViewModelBase = (function () {
+        function ViewModelBase() {
+        }
+        return ViewModelBase;
+    })();
+    _ViewModel.ViewModelBase = ViewModelBase;
+    var ViewModelMessageSpanBase = (function () {
+        function ViewModelMessageSpanBase() {
+        }
+        return ViewModelMessageSpanBase;
+    })();
+    _ViewModel.ViewModelMessageSpanBase = ViewModelMessageSpanBase;
+    var ViewModelMessageTypeBase = (function () {
+        function ViewModelMessageTypeBase() {
+        }
+        return ViewModelMessageTypeBase;
+    })();
+    _ViewModel.ViewModelMessageTypeBase = ViewModelMessageTypeBase;
+    var ViewModelMediaTypeBase = (function () {
+        function ViewModelMediaTypeBase() {
+        }
+        return ViewModelMediaTypeBase;
+    })();
+    _ViewModel.ViewModelMediaTypeBase = ViewModelMediaTypeBase;
 
-    (function (IViewModelMediaType) {
-        IViewModelMediaType[IViewModelMediaType["Image"] = 0] = "Image";
-        IViewModelMediaType[IViewModelMediaType["Drawing"] = 1] = "Drawing";
-        IViewModelMediaType[IViewModelMediaType["TwitterSummary"] = 2] = "TwitterSummary";
-        IViewModelMediaType[IViewModelMediaType["TwitterVideo"] = 3] = "TwitterVideo";
-    })(_ViewModel.IViewModelMediaType || (_ViewModel.IViewModelMediaType = {}));
-    var IViewModelMediaType = _ViewModel.IViewModelMediaType;
-
-    (function (IViewModelMessageSpan) {
-        IViewModelMessageSpan[IViewModelMessageSpan["Text"] = 0] = "Text";
-        IViewModelMessageSpan[IViewModelMessageSpan["Hightlight"] = 1] = "Hightlight";
-        IViewModelMessageSpan[IViewModelMessageSpan["Hyperlink"] = 2] = "Hyperlink";
-    })(_ViewModel.IViewModelMessageSpan || (_ViewModel.IViewModelMessageSpan = {}));
-    var IViewModelMessageSpan = _ViewModel.IViewModelMessageSpan;
-
-    (function (IViewModelMessageType) {
-        IViewModelMessageType[IViewModelMessageType["Normal"] = 0] = "Normal";
-        IViewModelMessageType[IViewModelMessageType["Server"] = 1] = "Server";
-    })(_ViewModel.IViewModelMessageType || (_ViewModel.IViewModelMessageType = {}));
-    var IViewModelMessageType = _ViewModel.IViewModelMessageType;
-
+    // /base classes
     var Person = (function () {
         function Person(id, name) {
             this.id = id;
             this.name = name;
-            this.type = 0 /* Person */;
         }
         return Person;
     })();
@@ -95,7 +132,6 @@ var ViewModel;
     var Theme = (function () {
         function Theme(themeName) {
             this.themeName = themeName;
-            this.type = 2 /* Theme */;
         }
         return Theme;
     })();
@@ -105,7 +141,6 @@ var ViewModel;
     var Text = (function () {
         function Text(text) {
             this.text = text;
-            this.messageSpanType = 0 /* Text */;
         }
         return Text;
     })();
@@ -114,7 +149,6 @@ var ViewModel;
     var Hightlight = (function () {
         function Hightlight(text) {
             this.text = text;
-            this.messageSpanType = 1 /* Hightlight */;
         }
         return Hightlight;
     })();
@@ -124,7 +158,6 @@ var ViewModel;
         function Hyperlink(text, url) {
             this.text = text;
             this.url = url;
-            this.messageSpanType = 2 /* Hyperlink */;
         }
         return Hyperlink;
     })();
@@ -135,7 +168,6 @@ var ViewModel;
     var Normal = (function () {
         function Normal(person) {
             this.person = person;
-            this.messageTypeType = 0 /* Normal */;
         }
         return Normal;
     })();
@@ -143,13 +175,20 @@ var ViewModel;
 
     var Server = (function () {
         function Server() {
-            this.messageTypeType = 1 /* Server */;
         }
         return Server;
     })();
     _ViewModel.Server = Server;
 
     // /MessageType
+    var MessageContent = (function () {
+        function MessageContent(messageContent) {
+            this.messageContent = messageContent;
+        }
+        return MessageContent;
+    })();
+    _ViewModel.MessageContent = MessageContent;
+
     var ChatMessage = (function () {
         function ChatMessage(messageType, messageContent, timeStamp, id, hasThumbnail, hasExtraMedia) {
             this.messageType = messageType;
@@ -158,7 +197,6 @@ var ViewModel;
             this.id = id;
             this.hasThumbnail = hasThumbnail;
             this.hasExtraMedia = hasExtraMedia;
-            this.type = 3 /* ChatMessage */;
         }
         return ChatMessage;
     })();
@@ -167,7 +205,6 @@ var ViewModel;
     var ChatMessages = (function () {
         function ChatMessages(chatMessages) {
             this.chatMessages = chatMessages;
-            this.type = 4 /* ChatMessages */;
         }
         return ChatMessages;
     })();
@@ -176,7 +213,6 @@ var ViewModel;
     var PeopleInRoom = (function () {
         function PeopleInRoom(people) {
             this.people = people;
-            this.type = 5 /* PeopleInRoom */;
         }
         return PeopleInRoom;
     })();
@@ -185,7 +221,6 @@ var ViewModel;
     var Me = (function () {
         function Me(me) {
             this.me = me;
-            this.type = 1 /* Me */;
         }
         return Me;
     })();
@@ -194,7 +229,6 @@ var ViewModel;
     var PeopleTyping = (function () {
         function PeopleTyping(people) {
             this.people = people;
-            this.type = 6 /* PeopleTyping */;
         }
         return PeopleTyping;
     })();
@@ -203,7 +237,6 @@ var ViewModel;
     var SendMessageText = (function () {
         function SendMessageText(messageText) {
             this.messageText = messageText;
-            this.type = 7 /* SendMessageText */;
         }
         return SendMessageText;
     })();
@@ -211,7 +244,6 @@ var ViewModel;
 
     var SendMessageButtonClick = (function () {
         function SendMessageButtonClick() {
-            this.type = 8 /* SendMessageButtonClick */;
         }
         return SendMessageButtonClick;
     })();
@@ -220,7 +252,6 @@ var ViewModel;
     var AutoCompleteText = (function () {
         function AutoCompleteText(autoCompleteText) {
             this.autoCompleteText = autoCompleteText;
-            this.type = 9 /* AutoCompleteText */;
         }
         return AutoCompleteText;
     })();
@@ -229,7 +260,6 @@ var ViewModel;
     var SendImage = (function () {
         function SendImage(imageData) {
             this.imageData = imageData;
-            this.type = 10 /* SendImage */;
         }
         return SendImage;
     })();
@@ -238,17 +268,15 @@ var ViewModel;
     var SendDrawing = (function () {
         function SendDrawing(drawingData) {
             this.drawingData = drawingData;
-            this.type = 11 /* SendDrawing */;
         }
         return SendDrawing;
     })();
     _ViewModel.SendDrawing = SendDrawing;
 
     var Thumbnail = (function () {
-        function Thumbnail(messageId, data) {
+        function Thumbnail(messageId, ref) {
             this.messageId = messageId;
-            this.data = data;
-            this.type = 12 /* Thumbnail */;
+            this.ref = ref;
         }
         return Thumbnail;
     })();
@@ -257,7 +285,6 @@ var ViewModel;
     var Thumbnails = (function () {
         function Thumbnails(thumbnails) {
             this.thumbnails = thumbnails;
-            this.type = 13 /* Thumbnails */;
         }
         return Thumbnails;
     })();
@@ -267,7 +294,6 @@ var ViewModel;
         function ExtraMedia(messageId, extraMedia) {
             this.messageId = messageId;
             this.extraMedia = extraMedia;
-            this.type = 14 /* ExtraMedia */;
         }
         return ExtraMedia;
     })();
@@ -276,7 +302,6 @@ var ViewModel;
     var ExtraMedias = (function () {
         function ExtraMedias(extraMedias) {
             this.extraMedias = extraMedias;
-            this.type = 15 /* ExtraMedias */;
         }
         return ExtraMedias;
     })();
@@ -286,16 +311,14 @@ var ViewModel;
     var Image = (function () {
         function Image(imageData) {
             this.imageData = imageData;
-            this.mediaType = 0 /* Image */;
         }
         return Image;
     })();
     _ViewModel.Image = Image;
 
     var Drawing = (function () {
-        function Drawing(drawingData) {
-            this.drawingData = drawingData;
-            this.mediaType = 1 /* Drawing */;
+        function Drawing(drawingRef) {
+            this.drawingRef = drawingRef;
         }
         return Drawing;
     })();
@@ -314,7 +337,6 @@ var ViewModel;
     var TwitterSummary = (function () {
         function TwitterSummary(twitterMedia) {
             this.twitterMedia = twitterMedia;
-            this.mediaType = 2 /* TwitterSummary */;
         }
         return TwitterSummary;
     })();
@@ -325,7 +347,6 @@ var ViewModel;
             this.twitterMedia = twitterMedia;
             this.videoIFrame = videoIFrame;
             this.size = size;
-            this.mediaType = 3 /* TwitterVideo */;
         }
         return TwitterVideo;
     })();

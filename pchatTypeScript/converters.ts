@@ -9,30 +9,30 @@ module Converters {
             return new ViewModel.Person(person.id, person.name)
         }
 
-        static messageTypeToMessageType(messageType: NetworkData.NetworkMessageType) : ViewModel.ViewModelMessageType {
-            if (messageType.messageTypeType === NetworkData.INetworkMessageType.Normal) {
+        static messageTypeToMessageType(messageType: NetworkData.NetworkMessageTypeBase): ViewModel.ViewModelMessageTypeBase {
+            if (messageType instanceof NetworkData.Normal) {
                 return new ViewModel.Normal(this.personToPerson((<NetworkData.Normal>messageType).person));
             }
-            else if (messageType.messageTypeType === NetworkData.INetworkMessageType.Server) {
+            else if (messageType instanceof NetworkData.Server) {
                 return new ViewModel.Server();
             } else {
                 throw "no match found";
             }
         }
 
-        static messageContentToMessageContent(messageContent: NetworkData.NetworkMessageSpan[]) : ViewModel.ViewModelMessageSpan[] {
-            return messageContent.map((span) => {
-                if (span.messageSpanType === NetworkData.INetworkMessageSpan.Text) {
+        static messageContentToMessageContent(messageContent: NetworkData.MessageContent): ViewModel.MessageContent {
+            return new ViewModel.MessageContent(messageContent.messageContent.map((span) => {
+                if (span instanceof NetworkData.Text) {
                     return new ViewModel.Text((<NetworkData.Text>span).text);
                 }
-                else if (span.messageSpanType === NetworkData.INetworkMessageSpan.Hightlight) {
+                else if (span instanceof  NetworkData.Hightlight) {
                     return new ViewModel.Hightlight((<NetworkData.Hightlight>span).text);
                 }
-                else if (span.messageSpanType === NetworkData.INetworkMessageSpan.Hyperlink) {
+                else if (span instanceof  NetworkData.Hyperlink) {
                     var hyperlink = (<NetworkData.Hyperlink>span)
                     return new ViewModel.Hyperlink(hyperlink.text, hyperlink.url);
                 }
-            });
+            }));
         }
 
         static chatMessageToChatMessage(chatMessage: NetworkData.ChatMessage) {
@@ -43,10 +43,9 @@ module Converters {
             return new ViewModel.PeopleInRoom(peopleInRoom.people.map((p) => this.personToPerson(p)))
         }
 
-        static mediaTypeToMediaType(mediaType: NetworkData.NetworkDataMediaType) {
-            var mt = NetworkData.INetworkMediaType;
-            if (mediaType.mediaType === mt.Drawing) {
-                return new ViewModel.Drawing((<NetworkData.Drawing>mediaType).drawingData)
+        static mediaTypeToMediaType(mediaType: NetworkData.NetworkDataMediaTypeBase) {
+            if (mediaType instanceof NetworkData.Drawing) {
+                return new ViewModel.Drawing((<NetworkData.ImageReference>(<NetworkData.Drawing>mediaType).drawingData).reference)
             }
             throw "no match found";
             
@@ -57,7 +56,7 @@ module Converters {
         }
 
         static thumbnailToThumbnail(thumbnail: NetworkData.Thumbnail) {
-            return new ViewModel.Thumbnail(thumbnail.id, thumbnail.data);
+            return new ViewModel.Thumbnail(thumbnail.id, thumbnail.data.reference);
         }
     }
 }

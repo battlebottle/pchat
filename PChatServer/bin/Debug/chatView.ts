@@ -21,7 +21,11 @@ module PChatView {
         private thumbnails: ViewModel.Thumbnail[] = []
 
 
-        constructor(private viewModel: ViewModel.ViewModel<ViewModel.IPChatViewModelEnum>) {
+        constructor(private viewModel: ViewModel.ViewModel<ViewModel.ViewModelBase>) {
+            var chatRoomNum = parseInt(window.location.pathname.substring(1));
+            if (isNaN(chatRoomNum)) {
+                chatRoomNum = 0;
+            }
 
             $('#messageListDiv').empty();
             var drawCanvasDiv = $("#drawCanvasDiv");
@@ -80,7 +84,7 @@ module PChatView {
 
             viewModel.addPropertyChangedListener(
                 (prop) => {
-                    if (prop.type === ViewModel.IPChatViewModelEnum.ChatMessages) {
+                    if (prop instanceof ViewModel.ChatMessages) {
                         var chatMessages = (<ViewModel.ChatMessages> prop);
                         //document.getElementById('content').innerHTML = chatMessages.sender.name + ":" + chatMessages.message;
                         //$('#messageListDiv').empty();
@@ -119,12 +123,12 @@ module PChatView {
 
                         scrollToBottom();
                     }
-                    else if (prop.type === ViewModel.IPChatViewModelEnum.PeopleInRoom) {
+                    else if (prop instanceof ViewModel.PeopleInRoom) {
                         var peopleInRoom = <ViewModel.PeopleInRoom> prop;
                         this.peopleInRoom = peopleInRoom.people
                         this.redrawPeopleList();
                     }
-                    else if (prop.type === ViewModel.IPChatViewModelEnum.PeopleTyping) {
+                    else if (prop instanceof ViewModel.PeopleTyping) {
                         var peopleTyping = <ViewModel.PeopleTyping> prop;
                         this.peopleTyping = peopleTyping.people
                         this.redrawPeopleList();
@@ -136,7 +140,7 @@ module PChatView {
                             $('#isTypingDiv').css('visibility', 'hidden');
                         }
                     }
-                    else if (prop.type === ViewModel.IPChatViewModelEnum.ExtraMedias) {
+                    else if (prop instanceof ViewModel.ExtraMedias) {
                         var extraMedia = <ViewModel.ExtraMedias> prop;
                         extraMedia.extraMedias.forEach((feem) => {
                             if (!this.extraMedias.some((em) => em.messageId === feem.messageId)) {
@@ -152,11 +156,22 @@ module PChatView {
                                             jDiv.data("extraMediaReceived", true)
                                             var exp = $(".expandedContentDiv", jDiv);
                                             exp.empty();
-                                            if (feem.extraMedia.mediaType === ViewModel.IViewModelMediaType.Drawing) {
+                                            if (feem.extraMedia instanceof ViewModel.Drawing) {
                                                 var drawing = <ViewModel.Drawing>feem.extraMedia;
-                                                exp.append($(templates.innerContentDiv_Drawing(drawing.drawingData)));
+                                                exp.append($(templates.innerContentDiv_Drawing(drawing, chatRoomNum)));
                                             }
 
+                                            var drawingImg = $(div).find('.drawingImg');
+                                            var resizeImage = () => {
+                                                var width = drawingImg.width()
+                                                drawingImg.height(width);
+                                            }
+                                            console.log("count:" + drawingImg.length);
+                                            if (drawingImg.length > 0) {
+                                                $(window).resize(resizeImage);
+                                                $(drawingImg).load(resizeImage);
+                                                resizeImage();
+                                            }
 
                                             $(div).click((evnt) => {
                                                 var exp = $(".expandedContentDiv", $(evnt.currentTarget));
@@ -166,11 +181,15 @@ module PChatView {
                                                 if (!animating) {
                                                     exp.data("animating", true);
                                                     if (expanded) {
+                                                        resizeImage();
                                                         exp.data("expanded", false);
                                                         exp.slideUp(500, () => {
                                                             exp.data("animating", false);
                                                         });
                                                     } else {
+                                                        exp.show();
+                                                        resizeImage();
+                                                        exp.hide();
                                                         exp.data("expanded", true);
                                                         exp.slideDown(500, () => {
                                                             exp.data("animating", false);
@@ -178,6 +197,7 @@ module PChatView {
                                                     }
                                                 }
                                             });
+
 
                                             scrollToBottom();
                                         }
@@ -189,7 +209,7 @@ module PChatView {
                             }
                         });
                     }
-                    else if (prop.type === ViewModel.IPChatViewModelEnum.Thumbnails) {
+                    else if (prop instanceof ViewModel.Thumbnails) {
 
                         var thumbnails = <ViewModel.Thumbnails> prop;
                         thumbnails.thumbnails.forEach((fetn) => {
@@ -203,9 +223,15 @@ module PChatView {
                                     var messageID = <number>jDiv.data("messageID");
                                     if (messageID === fetn.messageId) {
                                         var thumbnailImg = $(".thumbnailImg", jDiv);
-                                        thumbnailImg.height(100);
-                                        thumbnailImg.width(100);
-                                        thumbnailImg.attr('src', this.imageBytesTobase64(fetn.data));
+                                        $(".messageContentDiv", jDiv).addClass("messageContentThumbDiv");
+                                        thumbnailImg.attr(
+                                            'style',
+                                            HTMLTemplates.HTMLTemplates.messageThumbStyle(true))
+                                            .attr(
+                                            'src',
+                                            "thumbs/%c/%t.jpg"
+                                                .replace("%c", chatRoomNum.toString())
+                                                .replace("%t", fetn.ref.toString()));                                        
                                     }
                                 });
                             }
@@ -244,7 +270,17 @@ module PChatView {
                 }
             }
 
-        });
+            });
+            var drawCanvas = $("#drawCanvas");
+            var drawCanvasDiv = $("#drawCanvasDiv");
+            var resizeCanvas = () => {
+                drawCanvas.height(drawCanvas.width());
+                drawCanvasDiv.height(drawCanvas.height() + 12);
+                drawCanvasDiv.css("top", -18 - drawCanvas.width());
+            }
+
+            $(window).resize(resizeCanvas);
+            resizeCanvas();
 
         }
 

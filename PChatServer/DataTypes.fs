@@ -12,9 +12,15 @@ type TwitterMedia = {
     image : byte[] Option
 }
 
+type ImageReference = uint32
+
+type ImageRef =
+| Embedded of byte[]
+| Reference of ImageReference
+
 type MediaType =
-| Image of byte[]
-| Drawing of byte[]
+| Image of ImageRef
+| Drawing of ImageRef
 | TwitterSummary of TwitterMedia
 | TwitterVideo of TwitterMedia * string * (int*int)
 
@@ -35,7 +41,7 @@ type ExtraMedia = {
 
 type Thumbnail = {
     messageID : uint32
-    thumbnail : byte[]
+    thumbnail : ImageReference
 }
 
 type MessageContent = MessageSpan list
@@ -44,6 +50,7 @@ type HasThumbnail = bool
 type HasExtraMedia = bool
 type ID = uint32
 type ChatMessage = MessageType * MessageContent * DateTime * HasThumbnail * HasExtraMedia * ID
+type MessageHistory = ChatMessage list * Thumbnail list * ExtraMedia list
 
 type ChatData =
 | ChatMessage of ChatMessage
@@ -56,7 +63,7 @@ type ChatData =
 | RequestNameRejected of string
 | Theme of string
 | PeopleInRoom of Person list
-| MessageHistory of ChatMessage list
+| MessageHistory of MessageHistory
 | ServerTime of DateTime
 | Thumbnail of Thumbnail
 | ExtraMedia of ExtraMedia

@@ -1,403 +1,133 @@
 ﻿/// <reference path="core.ts" />
+/// <reference path="bufferio.ts" />
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var NetworkData;
 (function (NetworkData) {
-    var ArrayBufferReader = (function () {
-        function ArrayBufferReader(arrayBuffer) {
-            this.arrayBuffer = arrayBuffer;
-            this.position = 0;
+    //base classes
+    var NetworkDataBase = (function () {
+        function NetworkDataBase() {
         }
-        ArrayBufferReader.prototype.bin2String = function (array) {
-            var result = "";
-            for (var i = 0; i < array.length; i++) {
-                result += String.fromCharCode(array[i]);
-            }
-            return result;
+        NetworkDataBase.serialise = function (networkData) {
+            var bw = new BufferIO.ArrayBufferWriter();
+            networkData.serialise(bw);
+            return bw.toByteArray();
         };
 
-        ArrayBufferReader.prototype.readBuffer = function (byteLength) {
-            var uint8Array = new Uint8Array(byteLength);
-            var mainByteBuffer = new Uint8Array(this.arrayBuffer);
-            for (var i = 0; i < byteLength; i++) {
-                uint8Array[i] = mainByteBuffer[i + this.position];
-            }
-            this.position = this.position + byteLength;
-            return uint8Array.buffer;
-        };
-
-        ArrayBufferReader.prototype.readByte = function () {
-            var byteArray = new Uint8Array(this.arrayBuffer, this.position, 1);
-            this.position = this.position + 1;
-            return byteArray[0];
-        };
-
-        ArrayBufferReader.prototype.readBool = function () {
-            return this.readByte() !== 0;
-        };
-
-        ArrayBufferReader.prototype.readUint32 = function (this__) {
-            if (typeof this__ === "undefined") { this__ = this; }
-            return new Uint32Array(this__.readBuffer(4))[0];
-        };
-
-        ArrayBufferReader.prototype.readString = function () {
-            var length = this.readUint32();
-            var uint16Array = new Uint16Array(this.readBuffer(length * 2));
-            return bin2String(uint16Array);
-        };
-
-        ArrayBufferReader.prototype.readMaybe = function (valueReader) {
-            var isSome = this.readBool();
-            if (isSome) {
-                return new Maybe(valueReader(this));
-            } else {
-                return Maybe.createNone();
+        NetworkDataBase.deserialiseBuffer = function (arrayBuffer) {
+            var reader = new BufferIO.ArrayBufferReader(arrayBuffer);
+            var headerByte = reader.readByte();
+            if (headerByte === 0) {
+                return ChatMessage.deserialise(reader);
+            } else if (headerByte === 1) {
+                return PersonStartedTyping.deserialise(reader);
+            } else if (headerByte === 2) {
+                return PersonStoppedTyping.deserialise(reader);
+            } else if (headerByte === 6) {
+                return PeopleInRoom.deserialise(reader);
+            } else if (headerByte === 7) {
+                return MessageHistory.deserialise(reader);
+            } else if (headerByte === 9) {
+                return RequestNameAccepted.deserialise(reader);
+            } else if (headerByte === 10) {
+                return ExtraMedia.deserialise(reader);
+            } else if (headerByte === 11) {
+                return Thumbnail.deserialise(reader);
+            } else if (headerByte === 12) {
+                return RequestChatConnectionAccepted.deserialise(reader);
+            } else if (headerByte === 13) {
+                return RequestChatConnectionRejected.deserialise(reader);
+            } else if (headerByte === 14) {
+                return RequestNameRejected.deserialise(reader);
             }
         };
-
-        ArrayBufferReader.prototype.readPerson = function () {
-            return new Person(this.readUint32(), this.readString());
-        };
-
-        ArrayBufferReader.prototype.readMessageSpan = function () {
-            var header = this.readByte();
-            if (header === 0) {
-                return new Text(this.readString());
-            } else if (header === 1) {
-                return new Hightlight(this.readString());
-            } else if (header === 2) {
-                return new Hyperlink(this.readString(), this.readString());
-            }
-            throw "no match found";
-        };
-
-        ArrayBufferReader.prototype.readMessageSpans = function () {
-            var networkSpans = [];
-            var count = this.readUint32();
-            for (var i = 0; i < count; i++) {
-                networkSpans.push(this.readMessageSpan());
-            }
-            return networkSpans;
-        };
-
-        ArrayBufferReader.prototype.readMessageType = function () {
-            var header = this.readByte();
-            if (header === 0) {
-                return new Normal(this.readPerson());
-            } else if (header === 1) {
-                return new Server();
-            } else if (header === 2) {
-                return new Clear();
-            }
-            throw "no match found";
-        };
-
-        ArrayBufferReader.prototype.readChatMessage = function () {
-            return new ChatMessage(this.readMessageType(), this.readMessageSpans(), this.readUint32(), this.readBool(), this.readBool(), this.readUint32());
-        };
-
-        ArrayBufferReader.prototype.readPersonStartedTyping = function () {
-            return new PersonStartedTyping(this.readPerson());
-        };
-
-        ArrayBufferReader.prototype.readPersonStoppedTyping = function () {
-            return new PersonStoppedTyping(this.readPerson());
-        };
-
-        ArrayBufferReader.prototype.readPersonAway = function () {
-            return new PersonAway(this.readPerson());
-        };
-
-        ArrayBufferReader.prototype.readPersonNotAway = function () {
-            return new PersonNotAway(this.readPerson());
-        };
-
-        ArrayBufferReader.prototype.readPeopleInRoom = function () {
-            var peopleInRoom = [];
-            var count = this.readUint32();
-            for (var i = 0; i < count; i++) {
-                peopleInRoom.push(this.readPerson());
-            }
-            return new PeopleInRoom(peopleInRoom);
-        };
-
-        ArrayBufferReader.prototype.readMessageHistory = function () {
-            var messageHistory = [];
-            var count = this.readUint32();
-            for (var i = 0; i < count; i++) {
-                messageHistory.push(this.readChatMessage());
-            }
-            return new MessageHistory(messageHistory);
-        };
-
-        ArrayBufferReader.prototype.readServerTime = function () {
-            return new ServerTime(this.readUint32());
-        };
-
-        ArrayBufferReader.prototype.readRequestName = function () {
-            return new RequestName(this.readString());
-        };
-
-        ArrayBufferReader.prototype.readRequestNameAccepted = function () {
-            return new RequestNameAccepted(this.readPerson());
-        };
-
-        ArrayBufferReader.prototype.readRequestNameRejected = function () {
-            return new RequestNameRejected(this.readString());
-        };
-
-        ArrayBufferReader.prototype.readByteArray = function () {
-            var length = this.readUint32();
-            var byteArray = new Uint8Array(length);
-            for (var i = 0; i < length; i++) {
-                byteArray[i] = this.readByte();
-            }
-            return byteArray;
-        };
-
-        ArrayBufferReader.prototype.readMediaType = function () {
-            var header = this.readByte();
-            if (header === 0) {
-                return new Drawing(this.readByteArray());
-            }
-            throw "no match found";
-        };
-
-        ArrayBufferReader.prototype.readExtraMedia = function () {
-            return new ExtraMedia(this.readUint32(), this.readMediaType());
-        };
-
-        ArrayBufferReader.prototype.readThumbnail = function () {
-            return new Thumbnail(this.readUint32(), this.readByteArray());
-        };
-
-        ArrayBufferReader.prototype.readRequestChatConnectionAccepted = function () {
-            return new RequestChatConnectionAccepted();
-        };
-
-        ArrayBufferReader.prototype.readRequestChatConnectionRejected = function () {
-            return new RequestChatConnectionRejected(this.readString());
-        };
-        return ArrayBufferReader;
+        return NetworkDataBase;
     })();
-    NetworkData.ArrayBufferReader = ArrayBufferReader;
-
-    var ArrayBufferWriter = (function () {
-        function ArrayBufferWriter() {
-            this.position = 0;
-            this.arrayBuffer = new ArrayBuffer(256);
+    NetworkData.NetworkDataBase = NetworkDataBase;
+    var NetworkMessageSpanBase = (function (_super) {
+        __extends(NetworkMessageSpanBase, _super);
+        function NetworkMessageSpanBase() {
+            _super.apply(this, arguments);
         }
-        ArrayBufferWriter.prototype.expandBufferFor = function (num) {
-            var newBufferMinLength = num + this.position;
-            if (newBufferMinLength > this.arrayBuffer.byteLength) {
-                var newBufferLength = this.arrayBuffer.byteLength;
-                while (newBufferLength < newBufferMinLength) {
-                    newBufferLength = newBufferLength * 2;
-                }
-                var newBufferArray = new Uint8Array(newBufferLength);
-                var oldBufferArray = new Uint8Array(this.arrayBuffer);
-                for (var i = 0; i < oldBufferArray.length; i++) {
-                    newBufferArray[i] = oldBufferArray[i];
-                }
-                this.arrayBuffer = newBufferArray.buffer;
+        NetworkMessageSpanBase.deserialise = function (reader) {
+            var header = reader.readByte();
+            if (header === 0) {
+                return Text.deserialise(reader);
+            } else if (header === 1) {
+                return Hightlight.deserialise(reader);
+            } else if (header === 2) {
+                return Hyperlink.deserialise(reader);
             }
         };
-
-        ArrayBufferWriter.prototype.copyBufferToMainBuffer = function (buffer) {
-            var byteArray = new Uint8Array(buffer);
-            this.expandBufferFor(byteArray.length);
-            var mainByteArray = new Uint8Array(this.arrayBuffer);
-
-            for (var i = 0; i < byteArray.length; i++) {
-                mainByteArray[i + this.position] = byteArray[i];
-            }
-            this.position = this.position + byteArray.length;
-        };
-
-        ArrayBufferWriter.prototype.writeByte = function (num) {
-            var uint8Array = new Uint8Array(1);
-            uint8Array[0] = num;
-            this.copyBufferToMainBuffer(uint8Array.buffer);
-        };
-
-        ArrayBufferWriter.prototype.writeBool = function (value) {
-            var boolToByte = function (value) {
-                if (value) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            };
-            this.writeByte(boolToByte(value));
-        };
-
-        ArrayBufferWriter.prototype.writeMaybe = function (maybe, valueWriter) {
-            this.writeBool(maybe.isSome());
-            if (maybe.isSome()) {
-                valueWriter(maybe.getValue(), this);
+        return NetworkMessageSpanBase;
+    })(NetworkDataBase);
+    NetworkData.NetworkMessageSpanBase = NetworkMessageSpanBase;
+    var NetworkMessageTypeBase = (function (_super) {
+        __extends(NetworkMessageTypeBase, _super);
+        function NetworkMessageTypeBase() {
+            _super.apply(this, arguments);
+        }
+        NetworkMessageTypeBase.deserialise = function (reader) {
+            var header = reader.readByte();
+            if (header === 0) {
+                return Normal.deserialise(reader);
+            } else if (header === 1) {
+                return Server.deserialise(reader);
+            } else if (header === 2) {
+                return Clear.deserialise(reader);
             }
         };
-
-        ArrayBufferWriter.prototype.writeUint32 = function (num, this__) {
-            if (typeof this__ === "undefined") { this__ = this; }
-            var uint32Array = new Uint32Array(1);
-            uint32Array[0] = num;
-            this__.copyBufferToMainBuffer(uint32Array.buffer);
-        };
-
-        ArrayBufferWriter.prototype.writeString = function (str) {
-            this.writeUint32(str.length);
-            var uint16Array = new Uint16Array(str.length);
-
-            for (var i = 0; i < str.length; i++) {
-                uint16Array[i] = str.charCodeAt(i);
+        return NetworkMessageTypeBase;
+    })(NetworkDataBase);
+    NetworkData.NetworkMessageTypeBase = NetworkMessageTypeBase;
+    var NetworkDataMediaTypeBase = (function (_super) {
+        __extends(NetworkDataMediaTypeBase, _super);
+        function NetworkDataMediaTypeBase() {
+            _super.apply(this, arguments);
+        }
+        NetworkDataMediaTypeBase.deserialise = function (reader) {
+            var header = reader.readByte();
+            if (header === 0) {
+                return Drawing.deserialise(reader);
             }
-            this.copyBufferToMainBuffer(uint16Array.buffer);
+            throw "no match found";
         };
-
-        ArrayBufferWriter.prototype.writePerson = function (person) {
-            this.writeUint32(person.id);
-            this.writeString(person.name);
-        };
-
-        ArrayBufferWriter.prototype.writeMessageType = function (messageType) {
-            if (messageType.messageTypeType === 0 /* Normal */) {
-                var normal = messageType;
-                this.writeByte(0);
-                this.writePerson(normal.person);
-            } else {
-                throw "no match found";
+        return NetworkDataMediaTypeBase;
+    })(NetworkDataBase);
+    NetworkData.NetworkDataMediaTypeBase = NetworkDataMediaTypeBase;
+    var NetworkDataImageRefBase = (function (_super) {
+        __extends(NetworkDataImageRefBase, _super);
+        function NetworkDataImageRefBase() {
+            _super.apply(this, arguments);
+        }
+        NetworkDataImageRefBase.deserialise = function (reader) {
+            var header = reader.readByte();
+            if (header === 1) {
+                return ImageReference.deserialise(reader);
             }
+            throw "no match found";
         };
+        return NetworkDataImageRefBase;
+    })(NetworkDataBase);
+    NetworkData.NetworkDataImageRefBase = NetworkDataImageRefBase;
 
-        ArrayBufferWriter.prototype.writeMessageSpan = function (messageSpan) {
-            if (messageSpan.messageSpanType === 0 /* Text */) {
-                var text = messageSpan;
-                this.writeByte(0);
-                this.writeString(text.text);
-            } else {
-                throw "no match found";
-            }
-        };
-
-        ArrayBufferWriter.prototype.writeMessageContent = function (messageSpans) {
-            this.writeUint32(messageSpans.length);
-            for (var i = 0; i < messageSpans.length; i++) {
-                this.writeMessageSpan(messageSpans[i]);
-            }
-        };
-
-        ArrayBufferWriter.prototype.writeChatMessage = function (chatMessage) {
-            this.writeByte(0);
-            this.writeMessageType(chatMessage.messageType);
-            this.writeMessageContent(chatMessage.messageContent);
-            this.writeUint32(chatMessage.timeStamp);
-            this.writeBool(chatMessage.hasThumbnail);
-            this.writeBool(chatMessage.hasExtraMedia);
-            this.writeUint32(chatMessage.id);
-        };
-
-        ArrayBufferWriter.prototype.writePersonStartedTyping = function (personST) {
-            this.writeByte(1);
-            this.writePerson(personST.person);
-        };
-
-        ArrayBufferWriter.prototype.writePersonStoppedTyping = function (personST) {
-            this.writeByte(2);
-            this.writePerson(personST.person);
-        };
-
-        ArrayBufferWriter.prototype.writeRequestName = function (requestName) {
-            this.writeByte(3);
-            this.writeString(requestName.name);
-        };
-
-        ArrayBufferWriter.prototype.writeByteArray = function (byteArray) {
-            this.writeUint32(byteArray.length);
-            for (var i = 0; i < byteArray.length; i++) {
-                this.writeByte(byteArray[i]);
-            }
-        };
-
-        ArrayBufferWriter.prototype.writeMediaType = function (mediaType) {
-            if (mediaType.mediaType === 1 /* Drawing */) {
-                var drawing = mediaType;
-                this.writeByte(0);
-                this.writeByteArray(drawing.drawingData);
-            }
-        };
-
-        ArrayBufferWriter.prototype.writeExtraMedia = function (extraMedia) {
-            this.writeByte(4);
-            this.writeUint32(extraMedia.id);
-            this.writeMediaType(extraMedia.extraMedia);
-        };
-
-        ArrayBufferWriter.prototype.writeRequestChatConnectionName = function (requestChatConnection) {
-            this.writeByte(5);
-            this.writeUint32(requestChatConnection.roomNumber);
-        };
-
-        ArrayBufferWriter.prototype.toByteArray = function () {
-            return new Uint8Array(this.arrayBuffer, 0, this.position);
-        };
-        return ArrayBufferWriter;
-    })();
-    NetworkData.ArrayBufferWriter = ArrayBufferWriter;
-
-    (function (INetworkData) {
-        INetworkData[INetworkData["Person"] = 0] = "Person";
-        INetworkData[INetworkData["ChatMessage"] = 1] = "ChatMessage";
-        INetworkData[INetworkData["PersonStartedTyping"] = 2] = "PersonStartedTyping";
-        INetworkData[INetworkData["PersonStoppedTyping"] = 3] = "PersonStoppedTyping";
-        INetworkData[INetworkData["PersonAway"] = 4] = "PersonAway";
-        INetworkData[INetworkData["PersonNotAway"] = 5] = "PersonNotAway";
-        INetworkData[INetworkData["Theme"] = 6] = "Theme";
-        INetworkData[INetworkData["PeopleInRoom"] = 7] = "PeopleInRoom";
-        INetworkData[INetworkData["MessageHistory"] = 8] = "MessageHistory";
-        INetworkData[INetworkData["ServerTime"] = 9] = "ServerTime";
-        INetworkData[INetworkData["RequestName"] = 10] = "RequestName";
-        INetworkData[INetworkData["RequestNameAccepted"] = 11] = "RequestNameAccepted";
-        INetworkData[INetworkData["RequestNameRejected"] = 12] = "RequestNameRejected";
-        INetworkData[INetworkData["Thumbnail"] = 13] = "Thumbnail";
-        INetworkData[INetworkData["ExtraMedia"] = 14] = "ExtraMedia";
-        INetworkData[INetworkData["RequestChatConnection"] = 15] = "RequestChatConnection";
-        INetworkData[INetworkData["RequestChatConnectionAccepted"] = 16] = "RequestChatConnectionAccepted";
-        INetworkData[INetworkData["RequestChatConnectionRejected"] = 17] = "RequestChatConnectionRejected";
-    })(NetworkData.INetworkData || (NetworkData.INetworkData = {}));
-    var INetworkData = NetworkData.INetworkData;
-
-    (function (INetworkMediaType) {
-        INetworkMediaType[INetworkMediaType["Image"] = 0] = "Image";
-        INetworkMediaType[INetworkMediaType["Drawing"] = 1] = "Drawing";
-        INetworkMediaType[INetworkMediaType["TwitterSummary"] = 2] = "TwitterSummary";
-        INetworkMediaType[INetworkMediaType["TwitterVideo"] = 3] = "TwitterVideo";
-    })(NetworkData.INetworkMediaType || (NetworkData.INetworkMediaType = {}));
-    var INetworkMediaType = NetworkData.INetworkMediaType;
-
-    (function (INetworkMessageSpan) {
-        INetworkMessageSpan[INetworkMessageSpan["Text"] = 0] = "Text";
-        INetworkMessageSpan[INetworkMessageSpan["Hightlight"] = 1] = "Hightlight";
-        INetworkMessageSpan[INetworkMessageSpan["Hyperlink"] = 2] = "Hyperlink";
-    })(NetworkData.INetworkMessageSpan || (NetworkData.INetworkMessageSpan = {}));
-    var INetworkMessageSpan = NetworkData.INetworkMessageSpan;
-
-    (function (INetworkMessageType) {
-        INetworkMessageType[INetworkMessageType["Normal"] = 0] = "Normal";
-        INetworkMessageType[INetworkMessageType["Server"] = 1] = "Server";
-        INetworkMessageType[INetworkMessageType["Clear"] = 2] = "Clear";
-    })(NetworkData.INetworkMessageType || (NetworkData.INetworkMessageType = {}));
-    var INetworkMessageType = NetworkData.INetworkMessageType;
-
+    // /base classes
     var Person = (function () {
         function Person(id, name) {
             this.id = id;
             this.name = name;
-            this.type = 0 /* Person */;
         }
-        Person.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writePerson(this);
-            return bw.toByteArray();
+        Person.prototype.serialise = function (writer) {
+            writer.writeUint32(this.id);
+            writer.writeString(this.name);
+        };
+
+        Person.deserialise = function (reader) {
+            return new Person(reader.readUint32(), reader.readString());
         };
         return Person;
     })();
@@ -407,8 +137,15 @@ var NetworkData;
     var Text = (function () {
         function Text(text) {
             this.text = text;
-            this.messageSpanType = 0 /* Text */;
         }
+        Text.prototype.serialise = function (writer) {
+            writer.writeByte(0);
+            writer.writeString(this.text);
+        };
+
+        Text.deserialise = function (reader) {
+            return new Text(reader.readString());
+        };
         return Text;
     })();
     NetworkData.Text = Text;
@@ -416,8 +153,10 @@ var NetworkData;
     var Hightlight = (function () {
         function Hightlight(text) {
             this.text = text;
-            this.messageSpanType = 1 /* Hightlight */;
         }
+        Hightlight.deserialise = function (reader) {
+            return new Hightlight(reader.readString());
+        };
         return Hightlight;
     })();
     NetworkData.Hightlight = Hightlight;
@@ -426,8 +165,10 @@ var NetworkData;
         function Hyperlink(text, url) {
             this.text = text;
             this.url = url;
-            this.messageSpanType = 2 /* Hyperlink */;
         }
+        Hyperlink.deserialise = function (reader) {
+            return new Hyperlink(reader.readString(), reader.readString());
+        };
         return Hyperlink;
     })();
     NetworkData.Hyperlink = Hyperlink;
@@ -437,29 +178,57 @@ var NetworkData;
     var Normal = (function () {
         function Normal(person) {
             this.person = person;
-            this.messageTypeType = 0 /* Normal */;
         }
+        Normal.prototype.serialise = function (writer) {
+            writer.writeByte(0);
+            this.person.serialise(writer);
+        };
+        Normal.deserialise = function (reader) {
+            return new Normal(Person.deserialise(reader));
+        };
         return Normal;
     })();
     NetworkData.Normal = Normal;
 
     var Server = (function () {
         function Server() {
-            this.messageTypeType = 1 /* Server */;
         }
+        Server.deserialise = function (reader) {
+            return new Server();
+        };
         return Server;
     })();
     NetworkData.Server = Server;
 
     var Clear = (function () {
         function Clear() {
-            this.messageTypeType = 2 /* Clear */;
         }
+        Clear.deserialise = function (reader) {
+            return new Clear();
+        };
         return Clear;
     })();
     NetworkData.Clear = Clear;
 
     // /MessageType
+    var MessageContent = (function () {
+        function MessageContent(messageContent) {
+            this.messageContent = messageContent;
+        }
+        MessageContent.prototype.serialise = function (writer) {
+            writer.writeUint32(this.messageContent.length);
+            for (var i = 0; i < this.messageContent.length; i++) {
+                this.messageContent[i].serialise(writer);
+            }
+        };
+
+        MessageContent.deserialise = function (reader) {
+            return new MessageContent(reader.readArray(NetworkMessageSpanBase.deserialise));
+        };
+        return MessageContent;
+    })();
+    NetworkData.MessageContent = MessageContent;
+
     var ChatMessage = (function () {
         function ChatMessage(messageType, messageContent, timeStamp, hasExtraMedia, hasThumbnail, id) {
             this.messageType = messageType;
@@ -468,12 +237,19 @@ var NetworkData;
             this.hasExtraMedia = hasExtraMedia;
             this.hasThumbnail = hasThumbnail;
             this.id = id;
-            this.type = 1 /* ChatMessage */;
         }
-        ChatMessage.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writeChatMessage(this);
-            return bw.toByteArray();
+        ChatMessage.prototype.serialise = function (writer) {
+            writer.writeByte(0);
+            this.messageType.serialise(writer);
+            this.messageContent.serialise(writer);
+            writer.writeUint64(this.timeStamp);
+            writer.writeBool(this.hasThumbnail);
+            writer.writeBool(this.hasExtraMedia);
+            writer.writeUint32(this.id);
+        };
+
+        ChatMessage.deserialise = function (reader) {
+            return new ChatMessage(NetworkMessageTypeBase.deserialise(reader), MessageContent.deserialise(reader), reader.readUint64(), reader.readBool(), reader.readBool(), reader.readUint32());
         };
         return ChatMessage;
     })();
@@ -482,12 +258,14 @@ var NetworkData;
     var PersonStartedTyping = (function () {
         function PersonStartedTyping(person) {
             this.person = person;
-            this.type = 2 /* PersonStartedTyping */;
         }
-        PersonStartedTyping.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writePersonStartedTyping(this);
-            return bw.toByteArray();
+        PersonStartedTyping.prototype.serialise = function (writer) {
+            writer.writeByte(1);
+            this.person.serialise(writer);
+        };
+
+        PersonStartedTyping.deserialise = function (reader) {
+            return new PersonStartedTyping(Person.deserialise(reader));
         };
         return PersonStartedTyping;
     })();
@@ -496,12 +274,14 @@ var NetworkData;
     var PersonStoppedTyping = (function () {
         function PersonStoppedTyping(person) {
             this.person = person;
-            this.type = 3 /* PersonStoppedTyping */;
         }
-        PersonStoppedTyping.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writePersonStoppedTyping(this);
-            return bw.toByteArray();
+        PersonStoppedTyping.prototype.serialise = function (writer) {
+            writer.writeByte(2);
+            this.person.serialise(writer);
+        };
+
+        PersonStoppedTyping.deserialise = function (reader) {
+            return new PersonStoppedTyping(Person.deserialise(reader));
         };
         return PersonStoppedTyping;
     })();
@@ -510,7 +290,6 @@ var NetworkData;
     var PersonAway = (function () {
         function PersonAway(person) {
             this.person = person;
-            this.type = 4 /* PersonAway */;
         }
         return PersonAway;
     })();
@@ -519,7 +298,6 @@ var NetworkData;
     var PersonNotAway = (function () {
         function PersonNotAway(person) {
             this.person = person;
-            this.type = 5 /* PersonNotAway */;
         }
         return PersonNotAway;
     })();
@@ -528,7 +306,6 @@ var NetworkData;
     var Theme = (function () {
         function Theme(theme) {
             this.theme = theme;
-            this.type = 6 /* Theme */;
         }
         return Theme;
     })();
@@ -537,17 +314,23 @@ var NetworkData;
     var PeopleInRoom = (function () {
         function PeopleInRoom(people) {
             this.people = people;
-            this.type = 7 /* PeopleInRoom */;
         }
+        PeopleInRoom.deserialise = function (reader) {
+            return new PeopleInRoom(reader.readArray(Person.deserialise));
+        };
         return PeopleInRoom;
     })();
     NetworkData.PeopleInRoom = PeopleInRoom;
 
     var MessageHistory = (function () {
-        function MessageHistory(messages) {
+        function MessageHistory(messages, thumbnails, extraMedia) {
             this.messages = messages;
-            this.type = 8 /* MessageHistory */;
+            this.thumbnails = thumbnails;
+            this.extraMedia = extraMedia;
         }
+        MessageHistory.deserialise = function (reader) {
+            return new MessageHistory(reader.readArray(ChatMessage.deserialise), reader.readArray(Thumbnail.deserialise), reader.readArray(ExtraMedia.deserialise));
+        };
         return MessageHistory;
     })();
     NetworkData.MessageHistory = MessageHistory;
@@ -555,7 +338,6 @@ var NetworkData;
     var ServerTime = (function () {
         function ServerTime(timeStamp) {
             this.timeStamp = timeStamp;
-            this.type = 5 /* PersonNotAway */;
         }
         return ServerTime;
     })();
@@ -564,12 +346,10 @@ var NetworkData;
     var RequestName = (function () {
         function RequestName(name) {
             this.name = name;
-            this.type = 10 /* RequestName */;
         }
-        RequestName.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writeRequestName(this);
-            return bw.toByteArray();
+        RequestName.prototype.serialise = function (writer) {
+            writer.writeByte(3);
+            writer.writeString(this.name);
         };
         return RequestName;
     })();
@@ -578,8 +358,10 @@ var NetworkData;
     var RequestNameAccepted = (function () {
         function RequestNameAccepted(person) {
             this.person = person;
-            this.type = 11 /* RequestNameAccepted */;
         }
+        RequestNameAccepted.deserialise = function (reader) {
+            return new RequestNameAccepted(Person.deserialise(reader));
+        };
         return RequestNameAccepted;
     })();
     NetworkData.RequestNameAccepted = RequestNameAccepted;
@@ -587,8 +369,10 @@ var NetworkData;
     var RequestNameRejected = (function () {
         function RequestNameRejected(reason) {
             this.reason = reason;
-            this.type = 12 /* RequestNameRejected */;
         }
+        RequestNameRejected.deserialise = function (reader) {
+            return new RequestNameRejected(reader.readString());
+        };
         return RequestNameRejected;
     })();
     NetworkData.RequestNameRejected = RequestNameRejected;
@@ -597,8 +381,10 @@ var NetworkData;
         function Thumbnail(id, data) {
             this.id = id;
             this.data = data;
-            this.type = 13 /* Thumbnail */;
         }
+        Thumbnail.deserialise = function (reader) {
+            return new Thumbnail(reader.readUint32(), ImageReference.deserialise(reader));
+        };
         return Thumbnail;
     })();
     NetworkData.Thumbnail = Thumbnail;
@@ -606,12 +392,10 @@ var NetworkData;
     var RequestChatConnection = (function () {
         function RequestChatConnection(roomNumber) {
             this.roomNumber = roomNumber;
-            this.type = 15 /* RequestChatConnection */;
         }
-        RequestChatConnection.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writeRequestChatConnectionName(this);
-            return bw.toByteArray();
+        RequestChatConnection.prototype.serialise = function (writer) {
+            writer.writeByte(5);
+            writer.writeUint32(this.roomNumber);
         };
         return RequestChatConnection;
     })();
@@ -620,16 +404,20 @@ var NetworkData;
     var RequestChatConnectionRejected = (function () {
         function RequestChatConnectionRejected(reason) {
             this.reason = reason;
-            this.type = 17 /* RequestChatConnectionRejected */;
         }
+        RequestChatConnectionRejected.deserialise = function (reader) {
+            return new RequestChatConnectionRejected(reader.readString());
+        };
         return RequestChatConnectionRejected;
     })();
     NetworkData.RequestChatConnectionRejected = RequestChatConnectionRejected;
 
     var RequestChatConnectionAccepted = (function () {
         function RequestChatConnectionAccepted() {
-            this.type = 16 /* RequestChatConnectionAccepted */;
         }
+        RequestChatConnectionAccepted.deserialise = function (reader) {
+            return new RequestChatConnectionAccepted();
+        };
         return RequestChatConnectionAccepted;
     })();
     NetworkData.RequestChatConnectionAccepted = RequestChatConnectionAccepted;
@@ -638,12 +426,15 @@ var NetworkData;
         function ExtraMedia(id, extraMedia) {
             this.id = id;
             this.extraMedia = extraMedia;
-            this.type = 14 /* ExtraMedia */;
         }
-        ExtraMedia.prototype.serialise = function () {
-            var bw = new NetworkData.ArrayBufferWriter();
-            bw.writeExtraMedia(this);
-            return bw.toByteArray();
+        ExtraMedia.prototype.serialise = function (writer) {
+            writer.writeByte(4);
+            writer.writeUint32(this.id);
+            this.extraMedia.serialise(writer);
+        };
+
+        ExtraMedia.deserialise = function (reader) {
+            return new ExtraMedia(reader.readUint32(), NetworkDataMediaTypeBase.deserialise(reader));
         };
         return ExtraMedia;
     })();
@@ -653,7 +444,6 @@ var NetworkData;
     var Image = (function () {
         function Image(imageData) {
             this.imageData = imageData;
-            this.mediaType = 0 /* Image */;
         }
         return Image;
     })();
@@ -662,11 +452,41 @@ var NetworkData;
     var Drawing = (function () {
         function Drawing(drawingData) {
             this.drawingData = drawingData;
-            this.mediaType = 1 /* Drawing */;
         }
+        Drawing.prototype.serialise = function (writer) {
+            writer.writeByte(0);
+            this.drawingData.serialise(writer);
+        };
+
+        Drawing.deserialise = function (reader) {
+            return new Drawing(NetworkDataImageRefBase.deserialise(reader));
+        };
         return Drawing;
     })();
     NetworkData.Drawing = Drawing;
+
+    var ImageReference = (function () {
+        function ImageReference(reference) {
+            this.reference = reference;
+        }
+        ImageReference.deserialise = function (reader) {
+            return new ImageReference(reader.readUint32());
+        };
+        return ImageReference;
+    })();
+    NetworkData.ImageReference = ImageReference;
+
+    var ImageEmbdedded = (function () {
+        function ImageEmbdedded(embedded) {
+            this.embedded = embedded;
+        }
+        ImageEmbdedded.prototype.serialise = function (writer) {
+            writer.writeByte(0);
+            writer.writeByteArray(this.embedded);
+        };
+        return ImageEmbdedded;
+    })();
+    NetworkData.ImageEmbdedded = ImageEmbdedded;
 
     var TwitterMedia = (function () {
         function TwitterMedia(title, description, image) {
@@ -681,7 +501,6 @@ var NetworkData;
     var TwitterSummary = (function () {
         function TwitterSummary(twitterMedia) {
             this.twitterMedia = twitterMedia;
-            this.mediaType = 2 /* TwitterSummary */;
         }
         return TwitterSummary;
     })();
@@ -692,7 +511,6 @@ var NetworkData;
             this.twitterMedia = twitterMedia;
             this.videoIFrame = videoIFrame;
             this.size = size;
-            this.mediaType = 3 /* TwitterVideo */;
         }
         return TwitterVideo;
     })();

@@ -28,30 +28,45 @@ var HTMLTemplates;
             return contentDiv;
         };
 
-        HTMLTemplates.innerContentDiv_Drawing = function (imageData) {
-            console.log("innerContentDiv_Drawing: " + imageData.length);
+        HTMLTemplates.innerContentDiv_Drawing = function (imageData, chatRoomNum) {
+            //console.log("innerContentDiv_Drawing: " + imageData.length);
             var contentDiv = '<div class="NormalCard">\
-            					<img width="450" height="450" src="#srcData">\
+            					<img width="450" height="450" src="#srcData" class="drawingImg">\
     						</div>';
-            var byteArrayTobase64 = function (data) {
-                return btoa(String.fromCharCode.apply(null, data));
-            };
-            var base64string = byteArrayTobase64(imageData);
 
-            return contentDiv.replace('#srcData', 'data:image/jpeg;base64,' + base64string);
+            //var byteArrayTobase64 = (data: Uint8Array) => {
+            //    return btoa(String.fromCharCode.apply(null, data));
+            //}
+            //var base64string = byteArrayTobase64(imageData);
+            return contentDiv.replace('#srcData', 'images/%c/%d.jpg'.replace("%c", chatRoomNum.toString()).replace("%d", imageData.drawingRef.toString()));
         };
 
         HTMLTemplates.messageContentToHTML = function (messageContent) {
-            return messageContent.map(function (span) {
-                if (span.messageSpanType === 0 /* Text */) {
+            return messageContent.messageContent.map(function (span) {
+                if (span instanceof ViewModel.Text) {
                     return span.text;
-                } else if (span.messageSpanType === 1 /* Hightlight */) {
+                } else if (span instanceof ViewModel.Hightlight) {
                     return "<b>%text%</b>".replace('%text%', span.text);
-                } else if (span.messageSpanType === 2 /* Hyperlink */) {
+                } else if (span instanceof ViewModel.Hyperlink) {
                     var hyperlink = span;
-                    return "<a href='%url%'>%text%</a>".replace("%text%", hyperlink.text).replace("%url%", hyperlink.url);
+                    return "<a href='%url%' target='_blank'>%text%</a>".replace("%text%", hyperlink.text).replace("%url%", hyperlink.url);
                 }
-            }).join();
+            }).join("");
+        };
+
+        HTMLTemplates.hourToString = function (num) {
+            var str = "00" + num;
+            return str.substring(str.length - 2, str.length);
+        };
+
+        HTMLTemplates.messageThumbStyle = function (hasThumbnail) {
+            var style = "";
+            if (hasThumbnail) {
+                style = "width:100px;height:100px;background-color: black;float:left; margin-right:5px; margin-bottom:5px;border:0px;";
+            } else {
+                style = "width:0px;height:0px;background-color: black;float:left; margin-right:0px; margin-bottom:0px;border:0px;";
+            }
+            return style;
         };
 
         HTMLTemplates.messageDiv = function (chatMessage) {
@@ -61,7 +76,8 @@ var HTMLTemplates;
 			    	    <div  class="nameDiv">\
 				        	<span>#name</span>\
 			    	    </div>\
-			    	    <div class="#messContentDiv" id="content">\
+                        <span class="timeStamp">#timeStamp</span>\
+			    	    <div class="messageContentDiv #messContentDiv" id="content">\
 			    	    	<img class="thumbnailImg" style="#imgStyle">\
 				        	<span>#message</span>\
 			    	    </div>\
@@ -84,14 +100,15 @@ var HTMLTemplates;
             };
 
             var getDisplayName = function (messageType) {
-                if (messageType.messageTypeType === 0 /* Normal */) {
+                if (messageType instanceof ViewModel.Normal) {
                     return messageType.person.name;
-                } else if (messageType.messageTypeType === 1 /* Server */) {
+                } else if (messageType instanceof ViewModel.Server) {
                     return "Server";
                 }
             };
 
-            return html.replace('#name', getDisplayName(chatMessage.messageType)).replace('#message', HTMLTemplates.messageContentToHTML(chatMessage.messageContent)).replace('#contentDivHTML', "").replace('#clickToExpandDiv', stringIf(chatMessage.hasExtraMedia, clickToExpandDiv, "")).replace('#imgStyle', stringIf(chatMessage.hasThumbnail, "width:100px;height:100px;background-color: black;float:left; margin-right:5px; margin-bottom:5px;border:0px;", "width:0px;height:0px;background-color: black;float:left; margin-right:0px; margin-bottom:0px;border:0px;")).replace('#messContentDiv', stringIf(chatMessage.hasThumbnail, "messageContentDiv", ""));
+            var date = new Date(chatMessage.timeStamp);
+            return html.replace('#name', getDisplayName(chatMessage.messageType)).replace('#message', HTMLTemplates.messageContentToHTML(chatMessage.messageContent)).replace('#contentDivHTML', "").replace('#clickToExpandDiv', stringIf(chatMessage.hasExtraMedia, clickToExpandDiv, "")).replace('#imgStyle', HTMLTemplates.messageThumbStyle(chatMessage.hasThumbnail)).replace('#messContentDiv', chatMessage.hasThumbnail ? "messageContentThumbDiv" : "").replace('#timeStamp', HTMLTemplates.hourToString(date.getHours()) + ":" + HTMLTemplates.hourToString(date.getMinutes()));
         };
         return HTMLTemplates;
     })();
