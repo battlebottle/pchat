@@ -70,9 +70,9 @@ module HTMLTemplates
         static messageThumbStyle(hasThumbnail: boolean) {
             var style = ""
             if (hasThumbnail) {
-                style = "width:100px;height:100px;background-color: black;float:left; margin-right:5px; margin-bottom:5px;border:0px;";
+                style = "width:100px;height:100px;float:left; margin-right:5px; margin-bottom:5px;border:0px;";
             } else {
-                style = "width:0px;height:0px;background-color: black;float:left; margin-right:0px; margin-bottom:0px;border:0px;";
+                style = "width:0px;height:0px;float:left; margin-right:0px; margin-bottom:0px;border:0px;";
             }
             return style;
         }
@@ -90,7 +90,7 @@ module HTMLTemplates
                         <span class="timeStamp">#timeStamp</span>\
 			    	    <div class="messageContentDiv #messContentDiv" id="content">\
 			    	    	<img class="thumbnailImg" style="#imgStyle">\
-				        	<span>#message</span>\
+				        	<span class="messageSpan">#message</span>\
 			    	    </div>\
 			    	    <div class="expandedContentDiv" style="overflow: hidden;">\
                         #contentDivHTML\

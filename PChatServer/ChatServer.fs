@@ -46,48 +46,50 @@ let createThumbnail (pngData : byte array) =
         let myEncoderParameters = new EncoderParameters(1);
 
         let jgpEncoder = ImageCodecInfo.GetImageEncoders().First (fun en -> en.FormatID = ImageFormat.Jpeg.Guid)
-        let myEncoderParameter = new EncoderParameter(Encoder.Quality, 80L);
+        let myEncoderParameter = new EncoderParameter(Encoder.Quality, 85L);
         myEncoderParameters.Param.[0] <- myEncoderParameter;
 
         newBitmap.Save(msOut, jgpEncoder, myEncoderParameters)
         return msOut.ToArray()
     }
 
-let renderWebPageThumb (url:String) (path:string) = 
-         // create the ProcessStartInfo using "cmd" as the program to be run,
-         // and "/c " as the parameters.
-         // Incidentally, /c tells cmd that we want it to execute the command that follows,
-         // and then exit.
-    async{
-        let path = sprintf "%s\%s" Environment.CurrentDirectory path
-        let commands =  sprintf "/c ScriblRenderer.exe \"%s\" \"%s\"" url path
-        printfn "%s" commands
-        let procStartInfo = new System.Diagnostics.ProcessStartInfo("cmd", commands)
-        //let t = 5/0
-        // The following commands are needed to redirect the standard output.
-        // This means that it will be redirected to the Process.StandardOutput StreamReader.
-        procStartInfo.RedirectStandardOutput <- true
-        procStartInfo.UseShellExecute <- false
-        // Do not create the black window.
-        procStartInfo.CreateNoWindow <- true
-        // Now we create a process, assign its ProcessStartInfo and start it
-        let proc = new System.Diagnostics.Process()
-        proc.StartInfo <- procStartInfo
-        proc.Start() |> ignore
-        // Get the output into a string
-        proc.StandardOutput.ReadToEnd() |> ignore;
-        // Display the command output.
-        //Console.WriteLine(result);
 
-        use fs = File.OpenRead(path)
-        let! bytes = fs.AsyncRead(fs.Length |> int)
-        fs.Dispose()
-        do! Async.Sleep 50
-        let! thumbBytes = createThumbnail bytes
-        use thumbfs = File.Create(path)
-        do! thumbfs.AsyncWrite(thumbBytes)
-        thumbfs.Dispose()
-    }
+
+let renderWebPageAgent = 
+    MailboxProcessor.Start(fun inbox ->
+        async { 
+            while true do 
+                let! (url:String), (path:string), (reply:AsyncReplyChannel<unit>) = inbox.Receive()
+                let path = sprintf "%s\%s" Environment.CurrentDirectory path
+                let commands =  sprintf "/c ScriblRenderer.exe \"%s\" \"%s\"" url (path+"_")
+                printfn "%s" commands
+                let procStartInfo = new System.Diagnostics.ProcessStartInfo("cmd", commands)
+                //let t = 5/0
+                // The following commands are needed to redirect the standard output.
+                // This means that it will be redirected to the Process.StandardOutput StreamReader.
+                procStartInfo.RedirectStandardOutput <- true
+                procStartInfo.UseShellExecute <- false
+                // Do not create the black window.
+                procStartInfo.CreateNoWindow <- true
+                // Now we create a process, assign its ProcessStartInfo and start it
+                let proc = new System.Diagnostics.Process()
+                proc.StartInfo <- procStartInfo
+                proc.Start() |> ignore
+                // Get the output into a string
+                proc.StandardOutput.ReadToEnd() |> ignore;
+                // Display the command output.
+                //Console.WriteLine(result);
+
+                use fs = File.OpenRead(path+"_")
+                let! bytes = fs.AsyncRead(fs.Length |> int)
+                fs.Dispose()
+                do! Async.Sleep 50
+                let! thumbBytes = createThumbnail bytes
+                use thumbfs = File.Create(path)
+                do! thumbfs.AsyncWrite(thumbBytes)
+                thumbfs.Dispose()
+                reply.Reply()
+     } )
 
 
 let bytesToChatData (byteArray : byte array) =
@@ -270,109 +272,110 @@ let createRoomManager roomNum =
                         openSocketList.Remove(socket) |> ignore
                         peopleDictionary.Remove(peopleDictionary.First(fun kv -> kv.Value = socket).Key) |> ignore
                         sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
-                
 
                 socket.OnBinary <-
-                    fun data ->
-                        match bytesToChatData data with
-                        | ChatMessage (person, message, time, hasThumbnail, hasExtraMedia, id) ->
-                            Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + messageToString message
-                            let messageHistoryID = messageHistory.Count |> uint32
-                            let processedMessage = processMessage message
-                            processedMessage
-                            |> List.tryFind (
-                                fun t -> 
-                                    match t with 
-                                    | Hyperlink _ -> true
-                                    | _ -> false)
-                            |> (fun o ->
-                                    match o with
-                                    | Some o ->
-                                        match o with
-                                        | Hyperlink (_, url) -> 
+                    Action<_>(
+                        bytesToChatData >>
+                        fun chatData ->
+                            match chatData with
+                            | ChatMessage (person, message, time, hasThumbnail, hasExtraMedia, id) ->
+                                Trace <| openSocketList.IndexOf(socket).ToString() + " sent:\t" + messageToString message
+                                let messageHistoryID = messageHistory.Count |> uint32
+                                let processedMessage = processMessage message
+                                //processedMessage //web url thumbnail rendering
+                                //|> List.tryFind (
+                                //    fun t -> 
+                                //        match t with 
+                                //        | Hyperlink _ -> true
+                                //        | _ -> false)
+                                //|> (fun o ->
+                                //        match o with
+                                //        | Some o ->
+                                //            match o with
+                                //            | Hyperlink (_, url) -> 
+                                //                async {
+                                //                    do! renderWebPageAgent.PostAndAsyncReply (fun reply -> url, (sprintf "thumbs/%i/%i.jpg" roomNum messageHistoryID), reply)
+                                //                    let thumbnail =  {messageID = messageHistoryID; thumbnail = messageHistoryID}
+                                //                    thumbnailHistory.Add thumbnail
+                                //                    sendAllPeople (chatDataToBytes <| Thumbnail thumbnail) 
+                                //                } |> Async.Start
+                                //            | _ -> ()
+                                //        | None -> ())
+
+                                let sanatisedMessage = (person, processedMessage, DateTime.UtcNow, hasThumbnail, hasExtraMedia, messageHistoryID)
+                                messageHistory.Add(sanatisedMessage)
+                                messageIDDict.[socket].Add(id, messageHistoryID)                        
+                                sendAllPeople <| chatDataToBytes (ChatMessage (sanatisedMessage))
+                            | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
+                            | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
+                            | PersonAway _ -> ()
+                            | PersonNotAway _ -> ()
+                            | Theme _ -> ()
+                            | PeopleInRoom  _-> ()
+                            | MessageHistory _ -> ()
+                            | ServerTime _ -> ()
+                            | RequestName name ->
+                                if peopleDictionary.Any(fun a -> 
+                                                            let key, value = a.Key, a.Value
+                                                            key.name = sanatise name) then
+                                    socket.Send(chatDataToBytes <| RequestNameRejected "Name already in use.")
+                                else
+                                    let sName = 
+                                        let sName = sanatise name
+                                        if sName.Length > 12 then sName.Substring(0,12) else sName
+
+                                    let peopleIds = 
+                                        peopleDictionary.Keys.ToArray()
+                                        |> Array.map (fun p -> p.id)
+                                        |> Array.toList
+
+                                    let rec findNextID (idList : uint32 list) startInt =
+                                        if List.exists (fun id -> id = startInt) idList then
+                                            findNextID idList (startInt + 1ul)
+                                        else
+                                            startInt
+                                    let newID = findNextID peopleIds 0ul
+
+                                    let newPerson = {id = newID; name = sName}
+                                    if peopleDictionary.Count = 0 then
+                                        title := sprintf "%s's room" sName
+                                        initialised := true
+
+                                    peopleDictionary.Add(newPerson, socket)         
+                                    messageIDDict.Add(socket, Dictionary<ID,ID>())                   
+                                    socket.Send(chatDataToBytes <| RequestNameAccepted newPerson)
+                                    socket.Send(chatDataToBytes 
+                                        <| MessageHistory 
+                                        (   (messageHistory.ToArray() |> Array.toList),
+                                            (thumbnailHistory.ToArray() |> Array.toList),
+                                            (extraMediaHistory.ToArray() |> Array.toList))
+                                    )
+                                    sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
+                            | ExtraMedia eMedia ->
+                                let newMessageID = messageIDDict.[socket].[eMedia.messageID]
+                                match eMedia.media with
+                                | Drawing d -> 
+                                    match d with
+                                    | Embedded e ->
+                                        Trace <| "d length: " + string e.Length    
+                                        let newExtraMedia = { eMedia with messageID = newMessageID; media = MediaType.Drawing (Reference newMessageID) }
+                                        [
                                             async {
-                                                do! renderWebPageThumb url (sprintf "thumbs/%i/%i.jpg" roomNum messageHistoryID)
-                                                let thumbnail =  {messageID = messageHistoryID; thumbnail = messageHistoryID}
+                                                let! thumbBytes = createThumbnail e
+                                                let thumbnail =  {messageID = newMessageID; thumbnail = newMessageID}
+                                                do! writeToFile ((sprintf "thumbs/%i/%i.jpg" roomNum newMessageID), thumbBytes)
                                                 thumbnailHistory.Add thumbnail
                                                 sendAllPeople (chatDataToBytes <| Thumbnail thumbnail) 
-                                            } |> Async.Start
-                                        | _ -> ()
-                                    | None -> ())
-
-                            let sanatisedMessage = (person, processedMessage, DateTime.UtcNow, hasThumbnail, hasExtraMedia, messageHistoryID)
-                            messageHistory.Add(sanatisedMessage)
-                            messageIDDict.[socket].Add(id, messageHistoryID)                        
-                            sendAllPeople <| chatDataToBytes (ChatMessage (sanatisedMessage))
-                        | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
-                        | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
-                        | PersonAway _ -> ()
-                        | PersonNotAway _ -> ()
-                        | Theme _ -> ()
-                        | PeopleInRoom  _-> ()
-                        | MessageHistory _ -> ()
-                        | ServerTime _ -> ()
-                        | RequestName name ->
-                            if peopleDictionary.Any(fun a -> 
-                                                        let key, value = a.Key, a.Value
-                                                        key.name = sanatise name) then
-                                socket.Send(chatDataToBytes <| RequestNameRejected "Name already in use.")
-                            else
-                                let sName = 
-                                    let sName = sanatise name
-                                    if sName.Length > 12 then sName.Substring(0,12) else sName
-
-                                let peopleIds = 
-                                    peopleDictionary.Keys.ToArray()
-                                    |> Array.map (fun p -> p.id)
-                                    |> Array.toList
-
-                                let rec findNextID (idList : uint32 list) startInt =
-                                    if List.exists (fun id -> id = startInt) idList then
-                                        findNextID idList (startInt + 1ul)
-                                    else
-                                        startInt
-                                let newID = findNextID peopleIds 0ul
-
-                                let newPerson = {id = newID; name = sName}
-                                if peopleDictionary.Count = 0 then
-                                    title := sprintf "%s's room" sName
-                                    initialised := true
-
-                                peopleDictionary.Add(newPerson, socket)         
-                                messageIDDict.Add(socket, Dictionary<ID,ID>())                   
-                                socket.Send(chatDataToBytes <| RequestNameAccepted newPerson)
-                                socket.Send(chatDataToBytes 
-                                    <| MessageHistory 
-                                    (   (messageHistory.ToArray() |> Array.toList),
-                                        (thumbnailHistory.ToArray() |> Array.toList),
-                                        (extraMediaHistory.ToArray() |> Array.toList))
-                                )
-                                sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
-                        | ExtraMedia eMedia ->
-                            let newMessageID = messageIDDict.[socket].[eMedia.messageID]
-                            match eMedia.media with
-                            | Drawing d -> 
-                                match d with
-                                | Embedded e ->
-                                    Trace <| "d length: " + string e.Length    
-                                    let newExtraMedia = { eMedia with messageID = newMessageID; media = MediaType.Drawing (Reference newMessageID) }
-                                    [
-                                        async {
-                                            let! thumbBytes = createThumbnail e
-                                            let thumbnail =  {messageID = newMessageID; thumbnail = newMessageID}
-                                            do! writeToFile ((sprintf "thumbs/%i/%i.jpg" roomNum newMessageID), thumbBytes)
-                                            thumbnailHistory.Add thumbnail
-                                            sendAllPeople (chatDataToBytes <| Thumbnail thumbnail) 
-                                        };
-                                        async {
-                                            do! writeToFile ((sprintf "images/%i/%i.jpg" roomNum newMessageID), e)
-                                            extraMediaHistory.Add newExtraMedia
-                                            sendAllPeople (chatDataToBytes <| ExtraMedia newExtraMedia)  
-                                        } 
-                                    ] |> List.iter Async.Start
-                            | _ -> raise (Exception("match not found"))                 
-                        | _ -> raise (Exception("match not found"))
-                
+                                            };
+                                            async {
+                                                do! writeToFile ((sprintf "images/%i/%i.jpg" roomNum newMessageID), e)
+                                                extraMediaHistory.Add newExtraMedia
+                                                sendAllPeople (chatDataToBytes <| ExtraMedia newExtraMedia)  
+                                            } 
+                                        ] |> List.iter Async.Start
+                                | _ -> raise (Exception("match not found"))                 
+                            | _ -> raise (Exception("match not found"))
+                )
     }
                 
 type ServerManager = {

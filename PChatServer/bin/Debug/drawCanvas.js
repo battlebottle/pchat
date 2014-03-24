@@ -97,6 +97,29 @@ var DrawCanvas;
             $('#drawCanvasButton_clear').click(function () {
                 return _this.reset();
             });
+            $('#drawCanvasButton_image').click(function () {
+                return $('#file').click();
+            });
+            $('#file').bind("change", function (ev) {
+                var file = ev.target['files'][0];
+                var reader = new FileReader();
+
+                reader.onload = function (fev) {
+                    var image = new Image();
+                    image.onload = function (iev) {
+                        _this.reset();
+                        _this.drawingMade = true;
+                        _this.renderingContext.drawImage(image, 0, 0, 420, 420);
+
+                        _this.renderingContext.rect(0, 0, 420, 420);
+                        _this.renderingContext.fillStyle = "rgba(255, 255, 255, 0.25)";
+                        _this.renderingContext.fill();
+                    };
+                    image.src = fev.target.result;
+                };
+
+                reader.readAsDataURL(file);
+            });
         }
         DrawCanvas.createEmptyWidthHistory = function () {
             var array = [];
@@ -206,7 +229,7 @@ var DrawCanvas;
         };
 
         DrawCanvas.prototype.getPngArrayBuffer = function () {
-            var dataURL = this.canvas.toDataURL("image/jpeg", 0.01);
+            var dataURL = this.canvas.toDataURL("image/jpeg", 0.85);
 
             var string_base64 = dataURL.replace(/^data:image\/(png|jpeg);base64,/, "");
 

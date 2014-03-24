@@ -11,4 +11,3 @@ E:\Dropbox\Dropbox\Projects\pchat\Suave\bin\Debug\suave.dll
 E:\Dropbox\Dropbox\Projects\pchat\Suave\bin\Debug\suave.pdb
 E:\Dropbox\Dropbox\Projects\pchat\Suave\obj\Debug\suave.dll
 E:\Dropbox\Dropbox\Projects\pchat\Suave\obj\Debug\suave.pdb
-E:\Dropbox\Dropbox\Projects\pchat\Suave\obj\Debug\suave.fsprojResolveAssemblyReference.cache

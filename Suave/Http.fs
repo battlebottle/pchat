@@ -280,8 +280,8 @@ module Http =
       let file_info = new FileInfo(filename)
       let send_it _ = 
         let mimes = mime_type (file_info.Extension)
-        set_header "Cache-Control" (sprintf "max-age=%d" CACHE_CONTROL_MAX_AGE)
-        >> set_header "Last-Modified" (file_info.LastAccessTimeUtc.ToString("R")) 
+        set_header "Cache-Control" (sprintf "max-age=%d, no-cache" CACHE_CONTROL_MAX_AGE)
+        >> set_header "Last-Modified" (file_info.LastWriteTimeUtc.ToString("R")) 
         >> set_header "Expires" (DateTime.UtcNow.AddSeconds(float(CACHE_CONTROL_MAX_AGE)).ToString("R")) 
         >> set_mime_type mimes 
         >> send_file (filename)

@@ -55,7 +55,7 @@ let main argv =
         let rec createRoomsList (list : RoomManager list) acu =
             match list with
             | [] -> acu
-            | h::t when not (h.getInitialised()) -> createRoomsList t acu
+            | h::t when not (h.getInitialised()) || h.roomNumber > 10000 -> createRoomsList t acu
             | h::t ->
                 createRoomsList t <| acu + (
                     roomTemplate

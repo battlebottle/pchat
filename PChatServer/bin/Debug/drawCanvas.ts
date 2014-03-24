@@ -145,6 +145,30 @@ module DrawCanvas {
             $('#drawCanvasButton_pen').click(() => this.setBrushMode(BrushMode.Pen));
             $('#drawCanvasButton_eraser').click(() => this.setBrushMode(BrushMode.Eraser));
             $('#drawCanvasButton_clear').click(() => this.reset());
+            $('#drawCanvasButton_image').click(() => $('#file').click());
+            $('#file').bind("change",
+                (ev) => {
+                    var file = ev.target['files'][0];
+                    var reader = new FileReader();
+
+                    reader.onload = (fev) => {
+                        var image = new Image()
+                        image.onload = (iev) => {
+                            this.reset();
+                            this.drawingMade = true;
+                            this.renderingContext.drawImage(image, 0, 0, 420, 420);
+
+
+                            this.renderingContext.rect(0, 0, 420, 420);
+                            this.renderingContext.fillStyle = "rgba(255, 255, 255, 0.25)";
+                            this.renderingContext.fill();
+                        }
+                        image.src = fev.target.result;
+
+                    };
+
+                    reader.readAsDataURL(file);
+                });
         }
 
         reset() {
@@ -209,7 +233,7 @@ module DrawCanvas {
 
 
     getPngArrayBuffer() {
-        var dataURL = this.canvas.toDataURL("image/jpeg", 0.01);
+        var dataURL = this.canvas.toDataURL("image/jpeg", 0.85);
 
         var string_base64 = dataURL.replace(/^data:image\/(png|jpeg);base64,/, "");
 

@@ -47,15 +47,15 @@ let renderURL url (path : string) =
 
         webPreferences.CustomCSS <- "::-webkit-scrollbar { visibility: hidden; }"
         use session = WebCore.CreateWebSession(webPreferences)
-        use vw = WebCore.CreateWebView(1024, defaultSize, session)
+        use vw = WebCore.CreateWebView(defaultSize, defaultSize, session)
         //vw.
         vw.Source <- new Uri(url);        
 
-        while vw.IsLoading do
+        while vw.IsLoading || not vw.IsResponsive do
             WebCore.Update()
-        for i in [1 .. 100] do
-            WebCore.Update()
-            System.Threading.Thread.Sleep(10)
+        //for i in [1 .. 100] do
+        //    WebCore.Update()
+        //    System.Threading.Thread.Sleep(10)
         //let docHeight = vw.ExecuteJavascriptWithResult( "(function() { var bodyElmnt = document.body; var html = document.documentElement; var height = Math.max( bodyElmnt.scrollHeight, bodyElmnt.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight ); return height; })();" ).ToString()
         //
         //(vw.Surface :?> Awesomium.Core.BitmapSurface).Resized.Add( fun o -> sizeChanged := true)
@@ -72,7 +72,7 @@ let renderURL url (path : string) =
         //if not (System.IO.Directory.Exists(path)) then
         //    System.IO.Directory.CreateDirectory(path) |> ignore
         let path = path.Replace('/','\\')
-        (vw.Surface :?> Awesomium.Core.BitmapSurface).SaveToJPEG(path, 80) |> ignore
+        (vw.Surface :?> Awesomium.Core.BitmapSurface).SaveToJPEG(path, 95) |> ignore
 
         //azure blob sotrage
 

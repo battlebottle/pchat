@@ -221,26 +221,26 @@ span.timeStamp {
 
 
 @media screen and (max-width:767px) {
-    div.messageContentDiv
-    {
+    div.messageContentDiv    {
 	    clear:both;
     }
 }
-div.messageContentThumbDiv
-{
+div.messageContentThumbDiv{
 	min-height:105px;
 }
 
-div.messageDiv
-{
+span.messageSpan {
+    word-wrap: break-word;
+}
+
+div.messageDiv{
     padding: 3px;
 	margin-bottom: 9px;
     background-color: #e8e8e8;
 	clear:both;
 }
 
-div.innerMessageDiv
-{
+div.innerMessageDiv{
 	max-width: 600px;
 	margin-left: auto;
 	margin-right: auto;
@@ -333,6 +333,7 @@ img.personImageDiv{
 }
 
 img.thumbnailImg {
+    background-color: rgb(124, 124, 124);
 }
 
 div.NormalCard {
@@ -447,3 +448,9 @@ div.drawCanvasButtonDivSelected {background-color: white;}
 #drawCanvasButton_eraser:active {background-image:url('/eraser_white.png');}
 #drawCanvasButton_clear {background-image:url('/clear_black.png');}
 #drawCanvasButton_clear:active {background-image:url('/clear_white.png');}
+#drawCanvasButton_image {background-image:url('/image_black.png');}
+#drawCanvasButton_image:active {background-image:url('/image_white.png');}
+
+#file {
+    display: none;
+}
