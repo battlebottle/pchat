@@ -28,9 +28,11 @@ module NetworkData
             else if (headerByte === 9) { return RequestNameAccepted.deserialise(reader);}
             else if (headerByte === 10) { return ExtraMedia.deserialise(reader);}
             else if (headerByte === 11) { return Thumbnail.deserialise(reader);}
-            else if (headerByte === 12) { return RequestChatConnectionAccepted.deserialise(reader);}
-            else if (headerByte === 13) { return RequestChatConnectionRejected.deserialise(reader);}
-            else if (headerByte === 14) { return RequestNameRejected.deserialise(reader);}
+            else if (headerByte === 12) { return RequestChatConnectionAccepted.deserialise(reader); }
+            else if (headerByte === 13) { return RequestChatConnectionRejected.deserialise(reader); }
+            else if (headerByte === 14) { return RequestNameRejected.deserialise(reader); }
+            else if (headerByte === 15) { return PersonStartedDrawing.deserialise(reader); }
+            else if (headerByte === 16) { return PersonStoppedDrawing.deserialise(reader); }
         }
     }
     export class NetworkMessageSpanBase extends NetworkDataBase {
@@ -218,10 +220,10 @@ module NetworkData
                 );
         }
     }
-    
+
     export class PersonStartedTyping implements NetworkDataBase, NetworkDataSendable {
         constructor(
-            public person: Person 
+            public person: Person
             ) { }
 
         serialise(writer: BufferIO.ArrayBufferWriter) {
@@ -233,10 +235,10 @@ module NetworkData
             return new PersonStartedTyping(Person.deserialise(reader));
         }
     }
-    
+
     export class PersonStoppedTyping implements NetworkDataBase, NetworkDataSendable {
         constructor(
-            public person: Person 
+            public person: Person
             ) { }
 
         serialise(writer: BufferIO.ArrayBufferWriter) {
@@ -246,6 +248,36 @@ module NetworkData
 
         static deserialise(reader: BufferIO.ArrayBufferReader) {
             return new PersonStoppedTyping(Person.deserialise(reader));
+        }
+    }
+
+    export class PersonStartedDrawing implements NetworkDataBase, NetworkDataSendable {
+        constructor(
+            public person: Person
+            ) { }
+
+        serialise(writer: BufferIO.ArrayBufferWriter) {
+            writer.writeByte(15);
+            this.person.serialise(writer);
+        }
+
+        static deserialise(reader: BufferIO.ArrayBufferReader) {
+            return new PersonStartedDrawing(Person.deserialise(reader));
+        }
+    }
+
+    export class PersonStoppedDrawing implements NetworkDataBase, NetworkDataSendable {
+        constructor(
+            public person: Person
+            ) { }
+
+        serialise(writer: BufferIO.ArrayBufferWriter) {
+            writer.writeByte(16);
+            this.person.serialise(writer);
+        }
+
+        static deserialise(reader: BufferIO.ArrayBufferReader) {
+            return new PersonStoppedDrawing(Person.deserialise(reader));
         }
     }
     

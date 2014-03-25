@@ -180,11 +180,17 @@ module ViewModel {
             public me: Person
             ) { }
     }
-    
+
     export class PeopleTyping implements ViewModelBase {
         constructor(
-            public people: Person[]        
-        ){}
+            public people: Person[]
+            ) { }
+    }
+
+    export class PeopleDrawing implements ViewModelBase {
+        constructor(
+            public people: Person[]
+            ) { }
     }
 
     export class SendMessageText implements ViewModelBase {
@@ -194,6 +200,14 @@ module ViewModel {
     }
 
     export class SendMessageButtonClick implements ViewModelBase {
+        constructor() { }
+    }
+
+    export class DrawingMouseDown implements ViewModelBase {
+        constructor() { }
+    }
+
+    export class DrawingMouseUp implements ViewModelBase {
         constructor() { }
     }
     

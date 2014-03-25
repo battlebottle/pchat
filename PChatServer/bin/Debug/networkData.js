@@ -43,6 +43,10 @@ var NetworkData;
                 return RequestChatConnectionRejected.deserialise(reader);
             } else if (headerByte === 14) {
                 return RequestNameRejected.deserialise(reader);
+            } else if (headerByte === 15) {
+                return PersonStartedDrawing.deserialise(reader);
+            } else if (headerByte === 16) {
+                return PersonStoppedDrawing.deserialise(reader);
             }
         };
         return NetworkDataBase;
@@ -286,6 +290,38 @@ var NetworkData;
         return PersonStoppedTyping;
     })();
     NetworkData.PersonStoppedTyping = PersonStoppedTyping;
+
+    var PersonStartedDrawing = (function () {
+        function PersonStartedDrawing(person) {
+            this.person = person;
+        }
+        PersonStartedDrawing.prototype.serialise = function (writer) {
+            writer.writeByte(15);
+            this.person.serialise(writer);
+        };
+
+        PersonStartedDrawing.deserialise = function (reader) {
+            return new PersonStartedDrawing(Person.deserialise(reader));
+        };
+        return PersonStartedDrawing;
+    })();
+    NetworkData.PersonStartedDrawing = PersonStartedDrawing;
+
+    var PersonStoppedDrawing = (function () {
+        function PersonStoppedDrawing(person) {
+            this.person = person;
+        }
+        PersonStoppedDrawing.prototype.serialise = function (writer) {
+            writer.writeByte(16);
+            this.person.serialise(writer);
+        };
+
+        PersonStoppedDrawing.deserialise = function (reader) {
+            return new PersonStoppedDrawing(Person.deserialise(reader));
+        };
+        return PersonStoppedDrawing;
+    })();
+    NetworkData.PersonStoppedDrawing = PersonStoppedDrawing;
 
     var PersonAway = (function () {
         function PersonAway(person) {

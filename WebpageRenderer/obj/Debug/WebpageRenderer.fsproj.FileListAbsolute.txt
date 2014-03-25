@@ -54,3 +54,4 @@ E:\Dropbox\Dropbox\Projects\pchat\WebpageRenderer\bin\Debug\xinput9_1_0.dll
 E:\Dropbox\Dropbox\Projects\pchat\WebpageRenderer\obj\Debug\ScriblRenderer.exe
 E:\Dropbox\Dropbox\Projects\pchat\WebpageRenderer\obj\Debug\ScriblRenderer.pdb
 E:\Dropbox\Dropbox\Projects\pchat\WebpageRenderer\bin\Debug\Awesomium.Core.dll
+E:\Dropbox\Dropbox\Projects\pchat\WebpageRenderer\obj\Debug\WebpageRenderer.fsprojResolveAssemblyReference.cache

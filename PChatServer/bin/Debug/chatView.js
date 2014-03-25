@@ -12,6 +12,7 @@ var PChatView;
             this.previousInputText = "";
             this.peopleInRoom = [];
             this.peopleTyping = [];
+            this.peopleDrawing = [];
             this.extraMedias = [];
             this.thumbnails = [];
             var chatRoomNum = parseInt(window.location.pathname.substring(1));
@@ -32,7 +33,7 @@ var PChatView;
 
             //set up canvas
             var canvas = document.getElementById('drawCanvas');
-            var canvasControl = new DrawCanvas.DrawCanvas(canvas);
+            var canvasControl = new DrawCanvas.DrawCanvas(canvas, viewModel);
 
             var sendMessage = function () {
                 drawCanvasVisible(false);
@@ -47,7 +48,6 @@ var PChatView;
 
                 viewModel.setProp(new ViewModel.SendDrawing(getDrawingData()));
                 canvasControl.reset();
-
                 viewModel.setProp(new ViewModel.SendMessageButtonClick());
                 $("#textInput").val("");
                 viewModel.setProp(new ViewModel.SendMessageText(""));
@@ -121,6 +121,17 @@ var PChatView;
 
                     if (peopleTyping.people.length > 0) {
                         $('#isTypingSpan').text("%name is typing...".replace("%name", peopleTyping.people[0].name));
+                        $('#isTypingDiv').css('visibility', 'visible');
+                    } else {
+                        $('#isTypingDiv').css('visibility', 'hidden');
+                    }
+                } else if (prop instanceof ViewModel.PeopleDrawing) {
+                    var peopleDrawing = prop;
+                    _this.peopleDrawing = peopleDrawing.people;
+                    _this.redrawPeopleList();
+
+                    if (peopleDrawing.people.length > 0) {
+                        $('#isTypingSpan').text("%name is drawing...".replace("%name", peopleDrawing.people[0].name));
                         $('#isTypingDiv').css('visibility', 'visible');
                     } else {
                         $('#isTypingDiv').css('visibility', 'hidden');
@@ -268,7 +279,11 @@ var PChatView;
             peopleList.empty();
             this.peopleInRoom.forEach(function (p) {
                 var style = "";
-                if (_this.peopleTyping.some(function (pt) {
+                if (_this.peopleDrawing.some(function (pt) {
+                    return p.id === pt.id;
+                })) {
+                    style = "drawing";
+                } else if (_this.peopleTyping.some(function (pt) {
                     return p.id === pt.id;
                 })) {
                     style = "typing";

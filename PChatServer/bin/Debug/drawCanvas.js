@@ -19,9 +19,10 @@ var DrawCanvas;
     })(BrushMode || (BrushMode = {}));
 
     var DrawCanvas = (function () {
-        function DrawCanvas(canvas) {
+        function DrawCanvas(canvas, viewModel) {
             var _this = this;
             this.canvas = canvas;
+            this.viewModel = viewModel;
             this.mouseDown = false;
             this.mouseDownFrames = 0;
             this.previousMousePosition = new Point(0, 0);
@@ -55,13 +56,16 @@ var DrawCanvas;
                 classThis.previousMouseTime = Date.now();
                 classThis.lastLineWidths = DrawCanvas.createEmptyWidthHistory();
                 classThis.previousLineWidth = 1;
+                viewModel.setProp(new ViewModel.DrawingMouseDown());
                 e.preventDefault();
             }, false);
             canvas.addEventListener("mouseup", function (e) {
                 classThis.mouseDown = false;
+                viewModel.setProp(new ViewModel.DrawingMouseUp());
             }, false);
             canvas.addEventListener("mouseout", function (e) {
                 classThis.mouseDown = false;
+                viewModel.setProp(new ViewModel.DrawingMouseUp());
             }, false);
 
             canvas.addEventListener("touchmove", function (e) {

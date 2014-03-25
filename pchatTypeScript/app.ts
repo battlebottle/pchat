@@ -12,6 +12,7 @@ class PCHat {
 
     vmChatMessages: ViewModel.ChatMessages = new ViewModel.ChatMessages([]);
     vmPeopleTyping: ViewModel.PeopleTyping = new ViewModel.PeopleTyping([]);
+    vmPeopleDrawing: ViewModel.PeopleDrawing = new ViewModel.PeopleDrawing([]);
     vmExtraMedias: ViewModel.ExtraMedias = new ViewModel.ExtraMedias([]);
     vmThumbnails: ViewModel.Thumbnails = new ViewModel.Thumbnails([]);
     vmSendDrawing: ViewModel.SendDrawing = null
@@ -25,6 +26,7 @@ class PCHat {
 
     userTyping = false
     lastTypingTime = 0
+    lastDrawingTime = 0
 
 
 
@@ -44,19 +46,37 @@ class PCHat {
                 }
                 else if (prop instanceof ViewModel.SendMessageText) {
                     var sendMessageText = (<ViewModel.SendMessageText> prop);
-                    if (sendMessageText.messageText.length > this.sendMessageText.length && this.me !== null) {
-                        this.userTyping = true;
-                        connection.send(new NetworkData.PersonStartedTyping(this.me));
-                        this.lastTypingTime = Date.now();
+                    if (this.me !== null) {
+                        connection.send(new NetworkData.PersonStoppedDrawing(this.me));
+                        if (sendMessageText.messageText.length > this.sendMessageText.length) {
+                            this.userTyping = true;
+                            connection.send(new NetworkData.PersonStartedTyping(this.me));
+                            this.lastTypingTime = Date.now();
+                            setTimeout(() => {
+                                if (Date.now() - this.lastTypingTime > 2500) {
+                                    this.userTyping = false;
+                                    connection.send(new NetworkData.PersonStoppedTyping(this.me));
+                                }
+                            }, 3000);
+                        }
+                    }
+                    this.sendMessageText = sendMessageText.messageText;
+                }
+                else if (prop instanceof ViewModel.DrawingMouseDown) {
+                    if (this.me !== null) {
+                        connection.send(new NetworkData.PersonStartedDrawing(this.me));
+                        this.lastDrawingTime = Date.now();
+                    }
+                }
+                else if (prop instanceof ViewModel.DrawingMouseUp) {
+                    if (this.me !== null) {
+                        this.lastDrawingTime = Date.now();
                         setTimeout(() => {
-                            if (Date.now() - this.lastTypingTime > 2500) {
-                                this.userTyping = false;
-                                connection.send(new NetworkData.PersonStoppedTyping(this.me));
+                            if (Date.now() - this.lastDrawingTime > 2500) {
+                                connection.send(new NetworkData.PersonStoppedDrawing(this.me));
                             }
                         }, 3000);
                     }
-
-                    this.sendMessageText = sendMessageText.messageText;
                 }
                 else if (prop instanceof ViewModel.SendMessageButtonClick) {
                     if (this.me === null) {
@@ -146,6 +166,20 @@ class PCHat {
                     if (this.vmPeopleTyping.people.some((p) => p.id === vmp.id && p.name === vmp.name)) {
                         this.vmPeopleTyping.people = this.vmPeopleTyping.people.filter((p) => p.id !== vmp.id || p.name !== vmp.name)
                     viewModel.setProp(this.vmPeopleTyping);
+                    }
+                }
+                else if (chatData instanceof NetworkData.PersonStartedDrawing) {
+                    var vmp = conv.personToPerson((<NetworkData.PersonStartedDrawing> chatData).person);
+                    if (!this.vmPeopleDrawing.people.some((p) => p.id === vmp.id && p.name === vmp.name)) {
+                        this.vmPeopleDrawing.people.push(vmp);
+                        viewModel.setProp(this.vmPeopleDrawing);
+                    }
+                }
+                else if (chatData instanceof NetworkData.PersonStoppedDrawing) {
+                    var vmp = conv.personToPerson((<NetworkData.PersonStoppedDrawing> chatData).person);
+                    if (this.vmPeopleDrawing.people.some((p) => p.id === vmp.id && p.name === vmp.name)) {
+                        this.vmPeopleDrawing.people = this.vmPeopleTyping.people.filter((p) => p.id !== vmp.id || p.name !== vmp.name)
+                    viewModel.setProp(this.vmPeopleDrawing);
                     }
                 }
                 else if (chatData instanceof NetworkData.RequestNameAccepted) {

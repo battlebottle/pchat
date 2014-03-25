@@ -234,6 +234,14 @@ var ViewModel;
     })();
     _ViewModel.PeopleTyping = PeopleTyping;
 
+    var PeopleDrawing = (function () {
+        function PeopleDrawing(people) {
+            this.people = people;
+        }
+        return PeopleDrawing;
+    })();
+    _ViewModel.PeopleDrawing = PeopleDrawing;
+
     var SendMessageText = (function () {
         function SendMessageText(messageText) {
             this.messageText = messageText;
@@ -248,6 +256,20 @@ var ViewModel;
         return SendMessageButtonClick;
     })();
     _ViewModel.SendMessageButtonClick = SendMessageButtonClick;
+
+    var DrawingMouseDown = (function () {
+        function DrawingMouseDown() {
+        }
+        return DrawingMouseDown;
+    })();
+    _ViewModel.DrawingMouseDown = DrawingMouseDown;
+
+    var DrawingMouseUp = (function () {
+        function DrawingMouseUp() {
+        }
+        return DrawingMouseUp;
+    })();
+    _ViewModel.DrawingMouseUp = DrawingMouseUp;
 
     var AutoCompleteText = (function () {
         function AutoCompleteText(autoCompleteText) {

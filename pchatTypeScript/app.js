@@ -19,6 +19,7 @@ var PCHat = (function () {
         this.me = null;
         this.vmChatMessages = new ViewModel.ChatMessages([]);
         this.vmPeopleTyping = new ViewModel.PeopleTyping([]);
+        this.vmPeopleDrawing = new ViewModel.PeopleDrawing([]);
         this.vmExtraMedias = new ViewModel.ExtraMedias([]);
         this.vmThumbnails = new ViewModel.Thumbnails([]);
         this.vmSendDrawing = null;
@@ -27,6 +28,7 @@ var PCHat = (function () {
         this.sendMessageText = "";
         this.userTyping = false;
         this.lastTypingTime = 0;
+        this.lastDrawingTime = 0;
         this.chatRoomNum = parseInt(window.location.pathname.substring(1));
         var t1 = "/2".substring(1);
         var test = parseInt(t1);
@@ -39,19 +41,35 @@ var PCHat = (function () {
                 var tprop = prop;
             } else if (prop instanceof ViewModel.SendMessageText) {
                 var sendMessageText = prop;
-                if (sendMessageText.messageText.length > _this.sendMessageText.length && _this.me !== null) {
-                    _this.userTyping = true;
-                    connection.send(new NetworkData.PersonStartedTyping(_this.me));
-                    _this.lastTypingTime = Date.now();
+                if (_this.me !== null) {
+                    connection.send(new NetworkData.PersonStoppedDrawing(_this.me));
+                    if (sendMessageText.messageText.length > _this.sendMessageText.length) {
+                        _this.userTyping = true;
+                        connection.send(new NetworkData.PersonStartedTyping(_this.me));
+                        _this.lastTypingTime = Date.now();
+                        setTimeout(function () {
+                            if (Date.now() - _this.lastTypingTime > 2500) {
+                                _this.userTyping = false;
+                                connection.send(new NetworkData.PersonStoppedTyping(_this.me));
+                            }
+                        }, 3000);
+                    }
+                }
+                _this.sendMessageText = sendMessageText.messageText;
+            } else if (prop instanceof ViewModel.DrawingMouseDown) {
+                if (_this.me !== null) {
+                    connection.send(new NetworkData.PersonStartedDrawing(_this.me));
+                    _this.lastDrawingTime = Date.now();
+                }
+            } else if (prop instanceof ViewModel.DrawingMouseUp) {
+                if (_this.me !== null) {
+                    _this.lastDrawingTime = Date.now();
                     setTimeout(function () {
-                        if (Date.now() - _this.lastTypingTime > 2500) {
-                            _this.userTyping = false;
-                            connection.send(new NetworkData.PersonStoppedTyping(_this.me));
+                        if (Date.now() - _this.lastDrawingTime > 2500) {
+                            connection.send(new NetworkData.PersonStoppedDrawing(_this.me));
                         }
                     }, 3000);
                 }
-
-                _this.sendMessageText = sendMessageText.messageText;
             } else if (prop instanceof ViewModel.SendMessageButtonClick) {
                 if (_this.me === null) {
                     connection.send(new NetworkData.RequestName(_this.sendMessageText));
@@ -134,6 +152,24 @@ var PCHat = (function () {
                             return p.id !== vmp.id || p.name !== vmp.name;
                         });
                         viewModel.setProp(_this.vmPeopleTyping);
+                    }
+                } else if (chatData instanceof NetworkData.PersonStartedDrawing) {
+                    var vmp = conv.personToPerson(chatData.person);
+                    if (!_this.vmPeopleDrawing.people.some(function (p) {
+                        return p.id === vmp.id && p.name === vmp.name;
+                    })) {
+                        _this.vmPeopleDrawing.people.push(vmp);
+                        viewModel.setProp(_this.vmPeopleDrawing);
+                    }
+                } else if (chatData instanceof NetworkData.PersonStoppedDrawing) {
+                    var vmp = conv.personToPerson(chatData.person);
+                    if (_this.vmPeopleDrawing.people.some(function (p) {
+                        return p.id === vmp.id && p.name === vmp.name;
+                    })) {
+                        _this.vmPeopleDrawing.people = _this.vmPeopleTyping.people.filter(function (p) {
+                            return p.id !== vmp.id || p.name !== vmp.name;
+                        });
+                        viewModel.setProp(_this.vmPeopleDrawing);
                     }
                 } else if (chatData instanceof NetworkData.RequestNameAccepted) {
                     var requestNameAccepted = chatData;

@@ -56,6 +56,8 @@ type ChatData =
 | ChatMessage of ChatMessage
 | PersonStartedTyping of Person
 | PersonStoppedTyping of Person
+| PersonStartedDrawing of Person
+| PersonStoppedDrawing of Person
 | PersonAway of Person
 | PersonNotAway of Person
 | RequestName of string

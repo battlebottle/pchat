@@ -83,7 +83,7 @@ module DrawCanvas {
             return DrawCanvas.scalePoint(point);
         }
 
-        constructor(private canvas: HTMLCanvasElement) {
+        constructor(private canvas: HTMLCanvasElement, private viewModel: ViewModel.ViewModel<ViewModel.ViewModelBase>) {
             this.renderingContext = canvas.getContext("2d");
             this.renderingContext.lineCap = "round";
             this.reset();
@@ -106,13 +106,16 @@ module DrawCanvas {
                 classThis.previousMouseTime = Date.now();
                 classThis.lastLineWidths = DrawCanvas.createEmptyWidthHistory();
                 classThis.previousLineWidth = 1;
+                viewModel.setProp(new ViewModel.DrawingMouseDown());
                 e.preventDefault();
             }, false);
             canvas.addEventListener("mouseup", (e) => {
                 classThis.mouseDown = false;
+                viewModel.setProp(new ViewModel.DrawingMouseUp());
             }, false);
             canvas.addEventListener("mouseout", (e) => {
                 classThis.mouseDown = false;
+                viewModel.setProp(new ViewModel.DrawingMouseUp());
             }, false);
 
 

@@ -363,6 +363,10 @@ div.personBullitDiv_typing {
 	border:1px solid orange;
 	background-color: orange
 }
+div.personBullitDiv_drawing {
+	border:1px solid rgba(0, 0, 0, 0.00);
+	background: url("/drawing.png");
+}
 div.personBullitDiv_away {
 	border:1px solid white;
 }

@@ -17,6 +17,7 @@ module PChatView {
 
         private peopleInRoom: ViewModel.Person[] = []
         private peopleTyping: ViewModel.Person[] = []
+        private peopleDrawing: ViewModel.Person[] = []
         private extraMedias: ViewModel.ExtraMedia[] = []
         private thumbnails: ViewModel.Thumbnail[] = []
 
@@ -40,7 +41,7 @@ module PChatView {
 
             //set up canvas
             var canvas = <HTMLCanvasElement>document.getElementById('drawCanvas');
-            var canvasControl = new DrawCanvas.DrawCanvas(canvas);
+            var canvasControl = new DrawCanvas.DrawCanvas(canvas, viewModel);
 
             var sendMessage = () => {
                 drawCanvasVisible(false);
@@ -55,7 +56,6 @@ module PChatView {
 
                 viewModel.setProp(new ViewModel.SendDrawing(getDrawingData()));
                 canvasControl.reset();
-
                 viewModel.setProp(new ViewModel.SendMessageButtonClick())
                 $("#textInput").val("");
                 viewModel.setProp(new ViewModel.SendMessageText(""));
@@ -135,6 +135,18 @@ module PChatView {
 
                         if (peopleTyping.people.length > 0) {
                             $('#isTypingSpan').text("%name is typing...".replace("%name", peopleTyping.people[0].name));
+                            $('#isTypingDiv').css('visibility', 'visible');
+                        } else {
+                            $('#isTypingDiv').css('visibility', 'hidden');
+                        }
+                    }
+                    else if (prop instanceof ViewModel.PeopleDrawing) {
+                        var peopleDrawing = <ViewModel.PeopleDrawing> prop;
+                        this.peopleDrawing = peopleDrawing.people
+                        this.redrawPeopleList();
+
+                        if (peopleDrawing.people.length > 0) {
+                            $('#isTypingSpan').text("%name is drawing...".replace("%name", peopleDrawing.people[0].name));
                             $('#isTypingDiv').css('visibility', 'visible');
                         } else {
                             $('#isTypingDiv').css('visibility', 'hidden');
@@ -290,7 +302,10 @@ module PChatView {
             this.peopleInRoom.forEach(
                 (p) => {
                     var style = "";
-                    if (this.peopleTyping.some((pt) => p.id === pt.id )) {
+                    if (this.peopleDrawing.some((pt) => p.id === pt.id)) {
+                        style = "drawing";
+                    }
+                    else if (this.peopleTyping.some((pt) => p.id === pt.id )) {
                         style = "typing";
                     }
                     else {

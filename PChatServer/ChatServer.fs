@@ -102,6 +102,8 @@ let bytesToChatData (byteArray : byte array) =
     | 3uy -> RequestName (readString r)
     | 4uy -> ChatData.ExtraMedia {messageID = r.ReadUInt32(); media = readMediaType r } 
     | 5uy -> RequestChatConnection (r.ReadUInt32())
+    | 15uy -> PersonStartedDrawing (readPerson r)
+    | 16uy -> PersonStoppedDrawing (readPerson r)
     | _ -> Theme ""//delete me
     
 let chatDataToBytes chatData =
@@ -152,6 +154,12 @@ let chatDataToBytes chatData =
     | RequestNameRejected reason ->
         w.Write(14uy)
         writeString w reason
+    | PersonStartedDrawing person ->
+        w.Write(15uy)
+        writePerson w person        
+    | PersonStoppedDrawing person ->
+        w.Write(16uy)
+        writePerson w person
     | _ -> raise (Exception("match not found"))
     ms.ToArray()
 
@@ -184,7 +192,9 @@ let processMessage (messageContent : MessageContent) =
                 let (|Text'|HyperLink'|) (text : string) =
                     if text.StartsWith("http") then
                         HyperLink'
-                    else if text.Length > 2 && text.Substring(1, text.Length - 2).Contains('.') then
+                    else if text.Length > 2 
+                        && text.Substring(1, text.Length - 2).Contains('.')
+                        && not (text.EndsWith(".")) then
                         HyperLink'
                     else
                         Text'                        
@@ -244,13 +254,13 @@ let createRoomManager roomNum =
     let sendAll (bytes : byte array) =
         openSocketList.ForEach(fun s -> s.Send(bytes))
     
-    let sendAllPeople (bytes : byte array) =
+    let sendAllPeople data =
         peopleDictionary.Values.ToArray()
-        |> Array.iter (fun s -> s.Send(bytes))
+        |> Array.iter (fun s -> s.Send(chatDataToBytes data))
 
-    let sendAllPeopleExcept socket (bytes : byte array) =
+    let sendAllPeopleExcept socket data =
         peopleDictionary.Values.ToArray()
-        |> Array.iter (fun s -> if not (s = socket) then s.Send(bytes))
+        |> Array.iter (fun s -> if not (s = socket) then s.Send(chatDataToBytes data))
 
     let title = ref ""
     let initialised = ref false
@@ -271,7 +281,7 @@ let createRoomManager roomNum =
                         Trace "client diconnected!"
                         openSocketList.Remove(socket) |> ignore
                         peopleDictionary.Remove(peopleDictionary.First(fun kv -> kv.Value = socket).Key) |> ignore
-                        sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
+                        sendAllPeople <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList)
 
                 socket.OnBinary <-
                     Action<_>(
@@ -305,9 +315,11 @@ let createRoomManager roomNum =
                                 let sanatisedMessage = (person, processedMessage, DateTime.UtcNow, hasThumbnail, hasExtraMedia, messageHistoryID)
                                 messageHistory.Add(sanatisedMessage)
                                 messageIDDict.[socket].Add(id, messageHistoryID)                        
-                                sendAllPeople <| chatDataToBytes (ChatMessage (sanatisedMessage))
-                            | PersonStartedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStartedTyping person)
-                            | PersonStoppedTyping person -> sendAllPeopleExcept socket <| chatDataToBytes (PersonStoppedTyping person)
+                                sendAllPeople <| ChatMessage (sanatisedMessage)
+                            | PersonStartedTyping person    -> sendAllPeopleExcept socket <| PersonStartedTyping person
+                            | PersonStoppedTyping person    -> sendAllPeopleExcept socket <| PersonStoppedTyping person
+                            | PersonStartedDrawing person   -> sendAllPeopleExcept socket <| PersonStartedDrawing person
+                            | PersonStoppedDrawing person   -> sendAllPeopleExcept socket <| PersonStoppedDrawing person
                             | PersonAway _ -> ()
                             | PersonNotAway _ -> ()
                             | Theme _ -> ()
@@ -350,7 +362,7 @@ let createRoomManager roomNum =
                                             (thumbnailHistory.ToArray() |> Array.toList),
                                             (extraMediaHistory.ToArray() |> Array.toList))
                                     )
-                                    sendAllPeople (chatDataToBytes <| PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
+                                    sendAllPeople (PeopleInRoom (peopleDictionary.Keys.ToArray() |> Array.toList))
                             | ExtraMedia eMedia ->
                                 let newMessageID = messageIDDict.[socket].[eMedia.messageID]
                                 match eMedia.media with
@@ -365,12 +377,12 @@ let createRoomManager roomNum =
                                                 let thumbnail =  {messageID = newMessageID; thumbnail = newMessageID}
                                                 do! writeToFile ((sprintf "thumbs/%i/%i.jpg" roomNum newMessageID), thumbBytes)
                                                 thumbnailHistory.Add thumbnail
-                                                sendAllPeople (chatDataToBytes <| Thumbnail thumbnail) 
+                                                sendAllPeople <| Thumbnail thumbnail
                                             };
                                             async {
                                                 do! writeToFile ((sprintf "images/%i/%i.jpg" roomNum newMessageID), e)
                                                 extraMediaHistory.Add newExtraMedia
-                                                sendAllPeople (chatDataToBytes <| ExtraMedia newExtraMedia)  
+                                                sendAllPeople <| ExtraMedia newExtraMedia
                                             } 
                                         ] |> List.iter Async.Start
                                 | _ -> raise (Exception("match not found"))                 
